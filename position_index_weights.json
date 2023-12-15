@@ -1,0 +1,99 @@
+{
+  "DMF": {
+    "minutes_played": 0.017,
+    "Def_Value": 0.26,
+    "Aerial_Value": 0.05,
+    "Pos_Value": 0.2,
+    "Carry_Value": 0.1,
+    "Pass_Value": 0.2,
+    "Att_threat_Value": 0.02,
+    "Creativity_Value": 0.02
+  },
+  "CB": {
+    "minutes_played": 0.017,
+    "Def_Value": 0.2,
+    "Aerial_Value": 0.15,
+    "Pos_Value": 0.08,
+    "Carry_Value": 0.18,
+    "B_playing_Value": 0.18,
+    "Att_threat_Value": 0.035
+  },
+  "LB": {
+    "minutes_played": 0.017,
+    "Def_Value": 0.2,
+    "Aerial_Value": 0.15,
+    "Pos_Value": 0.08,
+    "Carry_Value": 0.18,
+    "B_playing_Value": 0.18,
+    "Att_threat_Value": 0.035
+  },
+  "RB": {
+    "minutes_played": 0.017,
+    "Def_Value": 0.2,
+    "Aerial_Value": 0.15,
+    "Pos_Value": 0.08,
+    "Carry_Value": 0.18,
+    "B_playing_Value": 0.18,
+    "Att_threat_Value": 0.035
+  },
+  "CMF": {
+    "minutes_played": 0.017,
+    "Def_Value": 0.13,
+    "Aerial_Value": 0.1,
+    "Pos_Value": 0.13,
+    "Carry_Value": 0.1,
+    "Pass_Value": 0.13,
+    "Att_threat_Value": 0.13,
+    "Creativity_Value": 0.13
+  },
+  "AMF": {
+    "minutes_played": 0.017,
+    "Def_Value": 0.02,
+    "Aerial_Value": 0.02,
+    "Pos_Value": 0.08,
+    "Carry_Value": 0.2,
+    "Pass_Value": 0.18,
+    "Att_threat_Value": 0.2,
+    "Creativity_Value": 0.2
+  },
+  "LRW": {
+    "minutes_played": 0.017,
+    "Def_Value": 0.02,
+    "Aerial_Value": 0.02,
+    "Pos_Value": 0.14,
+    "Carry_Value": 0.15,
+    "Pass_Value": 0.12,
+    "Att_threat_Value": 0.2,
+    "Creativity_Value": 0.2
+  },
+  "RW": {
+    "minutes_played": 0.017,
+    "Def_Value": 0.02,
+    "Aerial_Value": 0.02,
+    "Pos_Value": 0.14,
+    "Carry_Value": 0.2,
+    "Pass_Value": 0.12,
+    "Att_threat_Value": 0.3,
+    "Creativity_Value": 0.2
+  },
+  "LW": {
+    "minutes_played": 0.017,
+    "Def_Value": 0.02,
+    "Aerial_Value": 0.02,
+    "Pos_Value": 0.14,
+    "Carry_Value": 0.15,
+    "Pass_Value": 0.12,
+    "Att_threat_Value": 0.2,
+    "Creativity_Value": 0.2
+  },
+  "CF": {
+    "minutes_played": 0.017,
+    "Def_Value": 0.025,
+    "Aerial_Value": 0.22,
+    "Pos_Value": 0.025,
+    "Carry_Value": 0.105,
+    "Pass_Value": 0.025,
+    "Att_threat_Value": 0.35,
+    "Creativity_Value": 0.1
+  }
+}

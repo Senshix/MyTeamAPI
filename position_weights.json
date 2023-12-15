@@ -1,0 +1,326 @@
+{
+  "CB": {
+    "Def_Value": {
+      "defensive_duels_per_90": 0.4,
+      "defensive_duels_won_percentage": 0.6
+    },
+    "Aerial_Value": {
+      "aerial_duels_per_90": 0.8,
+      "aerial_duels_won_percentage": 0.6
+    },
+    "Pos_Value": {
+      "interceptions_per_90_padj": 0.7
+    },
+    "Carry_Value": {
+      "progressive_runs_per_90": 0.7
+    },
+    "B_playing_Value": {
+      "accurate_passes": 0.2,
+      "forward_passes_per_90": 0.15,
+      "accurate_forward_passes": 0.25,
+      "progressives_passes_per_90": 0.25,
+      "progressives_passes_accuracy": 0.15
+    },
+    "Att_threat_Value": {
+      "xG_per_90": 0.35,
+      "non_penalty_goals_per_90": 0.15,
+      "shots_per_90": 0.1
+    }
+  },
+  "LB": {
+    "Def_Value": {
+      "defensive_duels_per_90": 0.4,
+      "defensive_duels_won_percentage": 0.6
+    },
+    "Aerial_Value": {
+      "aerial_duels_per_90": 0.4,
+      "aerial_duels_won_percentage": 0.6
+    },
+    "Pos_Value": {
+      "interceptions_per_90_padj": 0.7
+    },
+    "Carry_Value": {
+      "progressive_runs_per_90": 0.7
+    },
+    "B_playing_Value": {
+      "accurate_passes": 0.2,
+      "forward_passes_per_90": 0.15,
+      "accurate_forward_passes": 0.25,
+      "progressives_passes_per_90": 0.25,
+      "progressives_passes_accuracy": 0.15
+    },
+    "Att_threat_Value": {
+      "xG_per_90": 0.35,
+      "non_penalty_goals_per_90": 0.15,
+      "shots_per_90": 0.1
+    }
+  },
+  "RB": {
+    "Def_Value": {
+      "defensive_duels_per_90": 0.4,
+      "defensive_duels_won_percentage": 0.6
+    },
+    "Aerial_Value": {
+      "aerial_duels_per_90": 0.4,
+      "aerial_duels_won_percentage": 0.6
+    },
+    "Pos_Value": {
+      "interceptions_per_90_padj": 0.7
+    },
+    "Carry_Value": {
+      "progressive_runs_per_90": 0.7
+    },
+    "B_playing_Value": {
+      "accurate_passes": 0.2,
+      "forward_passes_per_90": 0.15,
+      "accurate_forward_passes": 0.25,
+      "progressives_passes_per_90": 0.25,
+      "progressives_passes_accuracy": 0.15
+    },
+    "Att_threat_Value": {
+      "xG_per_90": 0.35,
+      "non_penalty_goals_per_90": 0.15,
+      "shots_per_90": 0.1
+    }
+  },
+  "DMF": {
+    "Def_Value": {
+      "defensive_duels_per_90": 0.1,
+      "defensive_duels_won_percentage": 0.3,
+      "defensive_actions_per_90": 0.6
+    },
+    "Aerial_Value": {
+      "aerial_duels_per_90": 0.4,
+      "aerial_duels_won_percentage": 0.6
+    },
+    "Pos_Value": {
+      "interceptions_per_90_padj": 0.65,
+      "passes_received_per_90": 0.1
+    },
+    "Carry_Value": {
+      "progressive_runs_per_90": 0.3,
+      "dribbles_per_90": 0.25,
+      "successful_dribbles_percentage": 0.35
+    },
+    "Pass_Value": {
+      "accurate_passes": 0.35,
+      "forward_passes_per_90": 0.15,
+      "accurate_forward_passes": 0.2,
+      "progressives_passes_per_90": 0.1,
+      "progressives_passes_accuracy": 0.2
+    },
+    "Creativity_Value": {
+      "assists_per_90": 0.2,
+      "xA_per_90": 0.4,
+      "passes_to_penalty_area_per_90": 0.15,
+      "accurate_passes_to_penalty_area_percentage": 0.25
+    },
+    "Att_threat_Value": {
+      "xG_per_90": 0.3,
+      "non_penalty_goals_per_90": 0.15,
+      "ball_touches_in_penalty_area_per_90": 0.25,
+      "shots_per_90": 0.2
+    }
+  },
+  "CMF": {
+    "Def_Value": {
+      "defensive_duels_per_90": 0.2,
+      "defensive_duels_won_percentage": 0.3,
+      "defensive_actions_per_90": 0.5
+    },
+    "Aerial_Value": {
+      "aerial_duels_per_90": 0.4,
+      "aerial_duels_won_percentage": 0.6
+    },
+    "Pos_Value": {
+      "interceptions_per_90_padj": 0.6,
+      "passes_received_per_90": 0.25
+    },
+    "Carry_Value": {
+      "progressive_runs_per_90": 0.3,
+      "dribbles_per_90": 0.25,
+      "successful_dribbles_percentage": 0.35
+    },
+    "Pass_Value": {
+      "accurate_passes": 0.4,
+      "forward_passes_per_90": 0.1,
+      "accurate_forward_passes": 0.2,
+      "progressives_passes_per_90": 0.1,
+      "progressives_passes_accuracy": 0.2
+    },
+    "Creativity_Value": {
+      "assists_per_90": 0.2,
+      "xA_per_90": 0.4,
+      "passes_to_penalty_area_per_90": 0.15,
+      "accurate_passes_to_penalty_area_percentage": 0.25
+    },
+    "Att_threat_Value": {
+      "xG_per_90": 0.25,
+      "non_penalty_goals_per_90": 0.2,
+      "ball_touches_in_penalty_area_per_90": 0.25,
+      "shots_per_90": 0.3
+    }
+  },
+  "AMF": {
+    "Def_Value": {
+      "defensive_duels_per_90": 0.1,
+      "defensive_duels_won_percentage": 0.3,
+      "defensive_actions_per_90": 0.6
+    },
+    "Aerial_Value": {
+      "aerial_duels_per_90": 0.4,
+      "aerial_duels_won_percentage": 0.6
+    },
+    "Pos_Value": {
+      "interceptions_per_90_padj": 0.3,
+      "passes_received_per_90": 0.7
+    },
+    "Carry_Value": {
+      "progressive_runs_per_90": 0.1,
+      "dribbles_per_90": 0.35,
+      "successful_dribbles_percentage": 0.35
+    },
+    "Pass_Value": {
+      "accurate_passes": 0.4,
+      "forward_passes_per_90": 0.1,
+      "accurate_forward_passes": 0.2,
+      "progressives_passes_per_90": 0.1,
+      "progressives_passes_accuracy": 0.2
+    },
+    "Creativity_Value": {
+      "assists_per_90": 0.4,
+      "xA_per_90": 0.2,
+      "passes_to_penalty_area_per_90": 0.15,
+      "accurate_passes_to_penalty_area_percentage": 0.25
+    },
+    "Att_threat_Value": {
+      "xG_per_90": 0.3,
+      "non_penalty_goals_per_90": 0.3,
+      "ball_touches_in_penalty_area_per_90": 0.2,
+      "shots_per_90": 0.2
+    }
+  },
+  "LW": {
+    "Def_Value": {
+      "defensive_duels_per_90": 0.2,
+      "defensive_duels_won_percentage": 0.5,
+      "defensive_actions_per_90": 0.3
+    },
+    "Aerial_Value": {
+      "aerial_duels_per_90": 0.3,
+      "aerial_duels_won_percentage": 0.7
+    },
+    "Pos_Value": {
+      "interceptions_per_90_padj": 0.3,
+      "passes_received_per_90": 0.7
+    },
+    "Carry_Value": {
+      "progressive_runs_per_90": 0.15,
+      "dribbles_per_90": 0.25,
+      "successful_dribbles_percentage": 0.4
+    },
+    "Pass_Value": {
+      "accurate_passes": 0.3,
+      "forward_passes_per_90": 0.15,
+      "accurate_forward_passes": 0.1,
+      "progressives_passes_per_90": 0.2,
+      "progressives_passes_accuracy": 0.25
+    },
+    "Creativity_Value": {
+      "assists_per_90": 0.2,
+      "xA_per_90": 0.3,
+      "passes_to_penalty_area_per_90": 0.15,
+      "accurate_passes_to_penalty_area_percentage": 0.2,
+      "crosses_per_90": 0.05,
+      "accurate_crosses_percentage": 0.1
+    },
+    "Att_threat_Value": {
+      "xG_per_90": 0.3,
+      "non_penalty_goals_per_90": 0.3,
+      "ball_touches_in_penalty_area_per_90": 0.2,
+      "shots_per_90": 0.2
+    }
+  },
+  "RW": {
+    "Def_Value": {
+      "defensive_duels_per_90": 0.2,
+      "defensive_duels_won_percentage": 0.5,
+      "defensive_actions_per_90": 0.3
+    },
+    "Aerial_Value": {
+      "aerial_duels_per_90": 0.3,
+      "aerial_duels_won_percentage": 0.7
+    },
+    "Pos_Value": {
+      "interceptions_per_90_padj": 0.3,
+      "passes_received_per_90": 0.7
+    },
+    "Carry_Value": {
+      "progressive_runs_per_90": 0.15,
+      "dribbles_per_90": 0.25,
+      "successful_dribbles_percentage": 0.4
+    },
+    "Pass_Value": {
+      "accurate_passes": 0.3,
+      "forward_passes_per_90": 0.15,
+      "accurate_forward_passes": 0.1,
+      "progressives_passes_per_90": 0.2,
+      "progressives_passes_accuracy": 0.25
+    },
+    "Creativity_Value": {
+      "assists_per_90": 0.2,
+      "xA_per_90": 0.3,
+      "passes_to_penalty_area_per_90": 0.15,
+      "accurate_passes_to_penalty_area_percentage": 0.2,
+      "crosses_per_90": 0.05,
+      "accurate_crosses_percentage": 0.1
+    },
+    "Att_threat_Value": {
+      "xG_per_90": 0.3,
+      "non_penalty_goals_per_90": 0.3,
+      "ball_touches_in_penalty_area_per_90": 0.2,
+      "shots_per_90": 0.2
+    }
+  },
+  "CF": {
+    "Def_Value": {
+      "defensive_duels_per_90": 0.2,
+      "defensive_duels_won_percentage": 0.5,
+      "defensive_actions_per_90": 0.3
+    },
+    "Aerial_Value": {
+      "aerial_duels_per_90": 0.15,
+      "aerial_duels_won_percentage": 0.5
+    },
+    "Pos_Value": {
+      "interceptions_per_90_padj": 0.2,
+      "passes_received_per_90": 0.8
+    },
+    "Carry_Value": {
+      "progressive_runs_per_90": 0.1,
+      "dribbles_per_90": 0.15,
+      "successful_dribbles_percentage": 0.45
+    },
+    "Pass_Value": {
+      "accurate_passes": 0.3,
+      "forward_passes_per_90": 0.15,
+      "accurate_forward_passes": 0.1,
+      "progressives_passes_per_90": 0.2,
+      "progressives_passes_accuracy": 0.25
+    },
+    "Creativity_Value": {
+      "assists_per_90": 0.2,
+      "xA_per_90": 0.3,
+      "passes_to_penalty_area_per_90": 0.15,
+      "accurate_passes_to_penalty_area_percentage": 0.2,
+      "crosses_per_90": 0.05,
+      "accurate_crosses_percentage": 0.1
+    },
+    "Att_threat_Value": {
+      "xG_per_90": 0.4,
+      "non_penalty_goals_per_90": 0.35,
+      "shot_conversion_rate": 0.2,
+      "shots_per_90": 0.15
+    }
+  }
+}
