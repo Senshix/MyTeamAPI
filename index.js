@@ -226,7 +226,7 @@ app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
           const updatePromises = [];
           jsonArray.forEach((data) => {
             const values = [
-              parseInt(data.myTeam_id),
+              parseInt(data.myteam_id),
               parseFloat(data.defensive_duels_per_90),
               parseFloat(data.defensive_duels_won_percentage),
               parseFloat(data.aerial_duels_per_90),
@@ -241,7 +241,7 @@ app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
               parseFloat(data.xG_per_90),
               parseFloat(data.shots_per_90),
               parseFloat(data.shots_on_target_percentage),
-              parseFloat(data.goal_conversion_rate),
+              parseFloat(data.shot_conversion_rate),  // Changed from goal_conversion_rate
               parseFloat(data.assists_per_90),
               parseFloat(data.crosses_per_90),
               parseFloat(data.accurate_crosses_percentage),
@@ -255,14 +255,27 @@ app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
               parseFloat(data.assists_with_shots_per_90),
               parseFloat(data.passes_to_penalty_area_per_90),
               parseFloat(data.accurate_passes_to_penalty_area_percentage),
-              parseFloat(data.progressive_passes_per_90),
+              parseFloat(data.key_passes_per_90),  // Added missing field
+              parseFloat(data.progressives_passes_per_90),  // Changed from progressive_passes_per_90
+              parseFloat(data.progressives_passes_accuracy), // Added missing field
               parseFloat(data.xG_per_shot),
-              parseFloat(data.ranking_index),
-            ];
+              parseFloat(data.long_passes_received_per_90),  // Added missing field
+              parseFloat(data.long_passes_per_90),  // Added missing field
+              parseFloat(data.long_passes_accuracy),  // Added missing field
+              parseFloat(data.forward_passes_per_90),  // Added missing field
+              parseFloat(data.accurate_passes),  // Added missing field
+              parseFloat(data.passes_per_90),  // Added missing field
+              parseFloat(data.accurate_forward_passes),  // Added missing field
+              parseFloat(data.defensive_actions_per_90),  // Added missing field
+              parseInt(data.ranking_index),
+
+          ];
+          
             if (existingIds.includes(+data.myTeam_id)) {            
               // If myTeam_id exists
               const updatePromise = new Promise((resolve, reject) => {
-                const updateQuery = 'UPDATE PlayerMetrics SET ' +
+                const updateQuery =
+                'UPDATE playerMetrics SET ' +
                 'defensive_duels_per_90 = ?, ' +
                 'defensive_duels_won_percentage = ?, ' +
                 'aerial_duels_per_90 = ?, ' +
@@ -277,7 +290,7 @@ app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
                 'xG_per_90 = ?, ' +
                 'shots_per_90 = ?, ' +
                 'shots_on_target_percentage = ?, ' +
-                'goal_conversion_rate = ?, ' +
+                'shot_conversion_rate = ?, ' +
                 'assists_per_90 = ?, ' +
                 'crosses_per_90 = ?, ' +
                 'accurate_crosses_percentage = ?, ' +
@@ -291,16 +304,26 @@ app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
                 'assists_with_shots_per_90 = ?, ' +
                 'passes_to_penalty_area_per_90 = ?, ' +
                 'accurate_passes_to_penalty_area_percentage = ?, ' +
-                'progressive_passes_per_90 = ?, ' +
+                'key_passes_per_90=?,'+
+                'progressives_passes_per_90 = ?, ' +
+                'progressives_passes_accuracy = ?, ' +  // Added missing field
                 'xG_per_shot = ?, ' +
-                'ranking_index = ? ' +
+                'long_passes_received_per_90 = ?, ' +  // Added missing field
+                'long_passes_per_90 = ?, ' +  // Added missing field
+                'long_passes_accuracy = ?, ' +  // Added missing field
+                'forward_passes_per_90 = ?, ' +  // Added missing field
+                'accurate_passes = ?, ' +  // Added missing field
+                'passes_per_90 = ?, ' +  // Added missing field
+                'accurate_forward_passes = ?, ' +  // Added missing field
+                'defensive_actions_per_90 = ? ' +  // Added missing field
                 'WHERE myTeam_id = ?';
+
                 dbConnection.query(updateQuery, [...values.slice(1), data.myTeam_id], (updateErr, updateResults) => {
                   if (updateErr) {
                     console.error('Error updating data in MySQL table:', updateErr);
                     reject(updateErr);
                   } else {
-                    console.log(`Data updated for myTeam_id :  ${data.myTeam_id} successfully`);
+                    // console.log(`Data updated for myTeam_id :  ${data.myTeam_id} successfully`);
                     resolve(updateResults);
                   }
                 });
@@ -309,16 +332,21 @@ app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
             } else {
               // If myTeam_id doesn't exist
               const insertPromise = new Promise((resolve, reject) => {
-                const insertQuery = 'INSERT INTO PlayerMetrics (myTeam_id, defensive_duels_per_90, ' +
+                const insertQuery =
+                'INSERT INTO playerMetrics (myTeam_id, defensive_duels_per_90, ' +
                 'defensive_duels_won_percentage, aerial_duels_per_90, aerial_duels_won_percentage, ' +
                 'sliding_tackles_per_90_padj, interceptions_per_90_padj, fouls_per_90, yellow_cards, ' +
                 'red_cards, goals_per_90, non_penalty_goals_per_90, xG_per_90, shots_per_90, ' +
-                'shots_on_target_percentage, goal_conversion_rate, assists_per_90, crosses_per_90, ' +
+                'shots_on_target_percentage, shot_conversion_rate, assists_per_90, crosses_per_90, ' +
                 'accurate_crosses_percentage, dribbles_per_90, successful_dribbles_percentage, ' +
                 'offensive_duels_per_90, ball_touches_in_penalty_area_per_90, progressive_runs_per_90, ' +
                 'passes_received_per_90, xA_per_90, assists_with_shots_per_90, passes_to_penalty_area_per_90, ' +
-                'accurate_passes_to_penalty_area_percentage, progressive_passes_per_90, xG_per_shot, ' +
+                'accurate_passes_to_penalty_area_percentage,key_passes_per_90, progressives_passes_per_90, ' +
+                'progressives_passes_accuracy, xG_per_shot, long_passes_received_per_90, ' +
+                'long_passes_per_90, long_passes_accuracy, forward_passes_per_90, ' +
+                'accurate_passes, passes_per_90, accurate_forward_passes, defensive_actions_per_90, ' +
                 'ranking_index) VALUES ?';
+            
 
                 dbConnection.query(insertQuery, [[values]], (insertErr, insertResults) => {
                   if (insertErr) {
@@ -332,8 +360,8 @@ app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
               insertPromises.push(insertPromise);
             }
           });
-          console.log('Search Query:', dbConnection.format(searchQuery, idCheck));
-          console.log('existed  IDs:', existingIds);
+          // console.log('Search Query:', dbConnection.format(searchQuery, idCheck));
+          // console.log('existed  IDs:', existingIds);
           // Execute all update promises
           Promise.all(updatePromises)
             .then(() => {
@@ -350,8 +378,297 @@ app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
                     errorMessage: commitErr.sqlMessage,
                   });
                 } else {
-                  // Send success response
-                  res.json({ success: true });
+// ------------- Players Metrics Calculs
+                let positionWeightPath = './position_weights.json';
+                let positionWeightIndexPath = './position_index_weights.json';
+                // Read existing data from the file
+                let positionWeightExistingData = fs.readFileSync(positionWeightPath, 'utf-8');
+                let positionIndexWeightExistingData = fs.readFileSync(positionWeightIndexPath, 'utf-8');
+                // Parse existing JSON data
+                let position_weights = JSON.parse(positionWeightExistingData);
+                let position_index_weights = JSON.parse(positionIndexWeightExistingData);
+                app.get('/get-csv/MetricsVar', (req, res) => {
+                  res.json({  position_weights,position_index_weights });
+                });
+                app.put('/get-csv/MetricsVar', (req, res) => {
+                  let { positionWeights, positionIndexWeights } = req.body;
+                  console.log(positionIndexWeights);
+                  // Update your position_weights and position_index_weights variables here
+                  if(Object.keys(positionWeights).length !=0){
+                    position_weights = positionWeights;
+                    let updatedData = JSON.stringify(position_weights, null, 2);
+                    fs.writeFileSync(positionWeightPath, updatedData);
+                  }
+
+                  if (Object.keys(positionIndexWeights).length !=0) {
+                    position_index_weights = positionIndexWeights;
+                    let updatedIndexData = JSON.stringify(position_index_weights, null, 2);
+                    fs.writeFileSync(positionWeightIndexPath, updatedIndexData);
+                  }
+                  // console.log(Object.keys(positionIndexWeights).length );
+
+                  res.json({ message: 'MetricsVar updated successfully' });
+                });
+                const playerMetricsApi = 'http://localhost:5038/get-csv/playerMetrics';
+                const playerProfilesApi = 'http://localhost:5038/get-csv/playerprofile';
+
+                // Assuming you define profilesData somewhere in your code
+                let profilesData;
+                let totalSumArray;
+                const options = [];
+                const colors = ["#C70773", "#32CCA0", "#64BB9E", "#582E6E", "#86F749"];
+                const selected_features = [
+                  'xG_per_90', 'shots_per_90', 'ball_touches_in_penalty_area_per_90',
+                  'dribbles_per_90', 'successful_dribbles_percentage', 'defensive_actions_per_90', 'passes_per_90',
+                  'passes_to_penalty_area_per_90', 'progressives_passes_per_90'
+                ];
+                let League_Avg = {};
+                let Pos_Avg={};
+                let recent_performance=[];
+                let weighted;
+
+                  // Min-Max Scaling function
+                  const minMaxScaleArray = (data, newMin = 0, newMax = 100, decimalPlaces = 2) => {
+                    const min = Math.min(...data);
+                    const max = Math.max(...data);
+                    
+                    const scaledData = data.map(value =>
+                      parseFloat(((value - min) / (max - min) * (newMax - newMin) + newMin).toFixed(decimalPlaces))
+                    );
+                  
+                    return scaledData;
+                  };
+                const applyPositionWeights = (player, position_weights) => {
+                  const position = player['main_position'];
+
+                  const applyWeightsRecursive = (data, weights) => {
+                    if (typeof data === 'number') {
+                      return data * weights;
+                    } else if (typeof data === 'object') {
+                      const result = {};
+                      for (const key in data) {
+                        if (weights[key] !== undefined) {
+                          result[key] = applyWeightsRecursive(data[key], weights[key]);
+                        } else {
+                          result[key] = data[key];
+                        }
+                      }
+                      return result;
+                    } else {
+                      return data; // Non-object, non-number values (e.g., strings) are not weighted
+                    }
+                  };
+
+                  if (position_weights[position]) {
+                    const weightedPlayer = { ...player };
+                    let values = {};
+                    let sumValue = {};
+                    let sumValues = {};
+
+                    for (const [key, value] of Object.entries(position_weights[position])) {
+                      if (typeof value === 'object') {
+                        for (const metricGroup in value) {
+                          if (weightedPlayer[metricGroup]) {
+                            const weights = value[metricGroup];
+                            weightedPlayer[metricGroup] = applyWeightsRecursive(weightedPlayer[metricGroup], weights);
+
+                            if (!values[key]) {
+                              values[key] = {};
+                            }
+                            values[key][metricGroup] = weightedPlayer[metricGroup];
+                            sumValue[key] = Object.values(values[key]).reduce((a, b) => a + b, 0);
+                            sumValue["minutes_played"]=weightedPlayer["90s"]*90;
+                            // console.log(weightedPlayer["myTeam_id"],sumValue);
+                          }
+                        }
+                      }
+                    }
+
+                    for (const [key, value] of Object.entries(position_index_weights[position])) {
+                      for (const [key1, value1] of Object.entries(sumValue)) {
+                        if (key === key1) {
+                          if (!sumValues[key1]) {
+                            sumValues[key1] = 0;
+                          }
+                          sumValues[key1] += value * value1;
+                          //  console.log(weightedPlayer["myTeam_id"],sumValues)
+                        }
+                      }
+                    }
+
+                    // Calculate totalSum based on the sumValues
+                    const totalSum = Object.values(sumValues).reduce((a, b) => a + b, 0);
+                    //  console.log(weightedPlayer["myTeam_id"],totalSum)
+                      if(!totalSumArray){
+                      totalSumArray=[];
+                      weightedPlayer[`${position}_index`]=totalSumArray;
+                    }
+                    totalSumArray.push(totalSum);
+                    // Min-Max scale the standard-scaled totalSumArray
+                    const finalScaledTotalSumArray = minMaxScaleArray(totalSumArray);
+                    // console.log(finalScaledTotalSumArray)
+                    player["indice"]=totalSum;
+                  }
+
+                  return player;
+                };
+
+
+                // app.get('/getMergedPlayerData', async (req, res) => {
+                //   try {
+                //     const metricsResponse = await axios.get(playerMetricsApi);
+                //     const metricsData = metricsResponse.data;
+
+                //     const profilesResponse = await axios.get(playerProfilesApi);
+                //     const profilesData = profilesResponse.data;
+
+                //     const mergedData = mergeDataframes(metricsData, profilesData);
+
+                //     // Apply position weights to each player in the merged data
+                //     const weightedMergedData = {};
+                //     for (const position in mergedData) {
+                //       weightedMergedData[position] = mergedData[position].map(player => {
+                //         Pos_Avg[position] = {}; // Create an object for the position
+
+                //         selected_features.forEach(feature => {
+                //           Pos_Avg[position][feature] = []; // Create an empty array for the feature
+                      
+                //           mergedData[position].forEach(player => {
+                //             if (player) {
+                //               Pos_Avg[position][feature].push(player[feature]);
+                //             }
+                //           });
+                      
+                //           const totalSum = Pos_Avg[position][feature].reduce((a, b) => a + b, 0);
+                //           const average = totalSum / Pos_Avg[position][feature].length;
+                //           Pos_Avg[position][feature] = parseFloat(average.toFixed(1));
+
+                //         });
+
+                //         return applyPositionWeights(player, position_weights);
+                //       })
+                //       ;
+                //     }
+                //     const finalScaledTotalSumArray = minMaxScaleArray(totalSumArray);
+
+                // // Your existing loop code
+                // for (const position in weightedMergedData) {
+                //   // Sort players within the position based on scaled indice values in descending order
+                //   weightedMergedData[position].sort((a, b) => b.indice - a.indice);
+
+                //   // Assign ranking based on the sorted order
+                //   weightedMergedData[position].forEach((player, index) => {
+                //     for (const scaledMetric in totalSumArray){
+                //       if (player["indice"]==totalSumArray[scaledMetric]){
+                //         player["indice"] = finalScaledTotalSumArray[scaledMetric]; // Update the scaled indice value if needed
+
+                //       }
+                //     }
+                //     player.Classement = index + 1; // Assign rank based on sorted order
+                //   });
+                 
+                //     selected_features.forEach(feature => {
+                //       weightedMergedData[position].forEach(player => {
+                //         if (feature === "progressives_passes_per_90" || feature === "passes_to_penalty_area_per_90") {
+                //           return;
+                //         }
+
+                //         const performanceObject = {
+                //           id:player["myTeam_id"],
+                //           label: feature,
+                //           player_value: player[feature],
+                //           league_value: League_Avg[feature],
+                //           position_value: Pos_Avg[position][feature],
+                //           children: []
+                //         };
+
+                //         if (feature === "passes_per_90") {
+                //           performanceObject["id"]=player["myTeam_id"],
+                //           performanceObject["label"] = feature;
+                //           performanceObject["player_value"] = player[feature];
+                //           performanceObject["league_value"] = League_Avg[feature];
+                //           performanceObject["position_value"] = Pos_Avg[position][feature];
+                //           performanceObject["children"] = [];
+                //           performanceObject.children.push({
+                //             label: "passes_to_penalty_area_per_90",
+                //             player_value: player["passes_to_penalty_area_per_90"],
+                //             league_value: League_Avg["passes_to_penalty_area_per_90"],
+                //             position_value: Pos_Avg[position]["passes_to_penalty_area_per_90"]
+                //           }, {
+                //             label: "progressives_passes_per_90",
+                //             player_value: player["progressives_passes_per_90"],
+                //             league_value: League_Avg["progressives_passes_per_90"],
+                //             position_value: Pos_Avg[position]["progressives_passes_per_90"]
+                //           });
+                //         }
+
+                //         recent_performance.push(performanceObject); 
+                        
+                //         // console.log(player["myTeam_id"])
+                //         // Push the performance object into the array
+                //       });
+                      
+                      
+                      
+                //     });
+                //     weighted= weightedMergedData[position].map(player=>{
+                //      return recent_performance.map(metric=>{
+                //         if(metric["id"]===player["myTeam_id"]){
+                //          player["recent_performances"]=metric;
+
+                //         }
+                //         return player
+                //        })
+                //     })
+                // }
+                //   console.log(weighted)
+                //   res.json(weightedMergedData);
+                //   } catch (error) {
+                //     console.error(error);
+                //     res.status(500).json({ error: 'Failed to fetch and merge player data.' });
+                //   }
+                // });
+
+                // const mergeDataframes = (metricsData, profilesData) => {
+                //   const metricsArray = metricsData.data;
+                //   const profilesArray = profilesData.data;
+
+                //   const mergedArray = [];
+                //   for (const metricRow of metricsArray) {
+                //     const profileRow = profilesArray.find(profileRow => profileRow.myTeam_id === metricRow.myTeam_id);
+                //     if (profileRow) {
+                //       mergedArray.push({ ...metricRow, ...profileRow });
+                //     }
+                //     const featureObjects = {};
+
+                //     selected_features.forEach(feature => {
+                //       featureObjects[feature] = []; // Create an empty array for the feature
+                    
+                //       const metrics = Object.values(mergedArray);
+                    
+                //       metrics.forEach(Metric => {
+                //         if (Metric) {
+                //           featureObjects[feature].push(Metric[feature]);
+                //         }
+                //       });
+                //       const totalSum = featureObjects[feature].reduce((a, b) => a + b, 0);
+                //       const average = totalSum/featureObjects[feature].length;
+                //       League_Avg[feature] = parseFloat(average.toFixed(1));
+                //     });
+
+                //   }
+                //   const groupedByPosition = mergedArray.reduce((acc, player) => {
+                //     const position = player['main_position'];
+                //     if (!acc[position]) {
+                //       acc[position] = [];
+                //     }
+                //     acc[position].push(player);
+                //     return acc;
+                //   }, {});
+                //   return groupedByPosition;
+                // };
+                  
+                res.json({ success: true });
                 }
               });
             })
@@ -453,6 +770,15 @@ app.post('/upload-csv/Matches', upload.single('csvFile'), (req, res) => {
       res.status(500).json({ error: 'Error converting CSV to JSON.' });
     });
 });
+//--------------------Post Matches Junior
+app.post('/upload-csv/matchesJunior',upload.single('csvFile'),(req,res)=>{
+  console.log('Reached /upload-csv/matchesJunior endpoint');
+  console.log('Request file:', req.file);
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded.' });
+  }
+  
+})
 //--------------------MatchesProfiles POST
 app.post('/upload-csv/matchesProfiles', upload.single('csvFile'), (req, res) => {
   console.log('Reached /upload-csv/matchesProfiles endpoint');
@@ -1165,159 +1491,627 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
 });
 
 // ------------- Players Metrics Calculs
-let positionWeightPath = './position_weights.json';
-let positionWeightIndexPath = './position_index_weights.json';
-// Read existing data from the file
-let positionWeightExistingData = fs.readFileSync(positionWeightPath, 'utf-8');
-let positionIndexWeightExistingData = fs.readFileSync(positionWeightIndexPath, 'utf-8');
-// Parse existing JSON data
-let position_weights = JSON.parse(positionWeightExistingData);
-let position_index_weights = JSON.parse(positionIndexWeightExistingData);
-app.get('/get-csv/MetricsVar', (req, res) => {
-  res.json({  position_weights,position_index_weights });
-});
-app.put('/get-csv/MetricsVar', (req, res) => {
-  let { positionWeights, positionIndexWeights } = req.body;
-  console.log(positionIndexWeights);
-  // Update your position_weights and position_index_weights variables here
-  if(Object.keys(positionWeights).length !=0){
-    position_weights = positionWeights;
-    let updatedData = JSON.stringify(position_weights, null, 2);
-    fs.writeFileSync(positionWeightPath, updatedData);
-  }
+                let positionWeightPath = './position_weights.json';
+                let positionWeightIndexPath = './position_index_weights.json';
+                // Read existing data from the file
+                let positionWeightExistingData = fs.readFileSync(positionWeightPath, 'utf-8');
+                let positionIndexWeightExistingData = fs.readFileSync(positionWeightIndexPath, 'utf-8');
+                // Parse existing JSON data
+                let position_weights = JSON.parse(positionWeightExistingData);
+                let position_index_weights = JSON.parse(positionIndexWeightExistingData);
+                app.get('/get-csv/MetricsVar', (req, res) => {
+                  res.json({  position_weights,position_index_weights });
+                });
+                app.put('/get-csv/MetricsVar', (req, res) => {
+                  let { positionWeights, positionIndexWeights } = req.body;
+                  console.log(positionIndexWeights);
+                  // Update your position_weights and position_index_weights variables here
+                  if(Object.keys(positionWeights).length !=0){
+                    position_weights = positionWeights;
+                    let updatedData = JSON.stringify(position_weights, null, 2);
+                    fs.writeFileSync(positionWeightPath, updatedData);
+                  }
 
-  if (Object.keys(positionIndexWeights).length !=0) {
-    position_index_weights = positionIndexWeights;
-    let updatedIndexData = JSON.stringify(position_index_weights, null, 2);
-    fs.writeFileSync(positionWeightIndexPath, updatedIndexData);
-  }
-  console.log(Object.keys(positionIndexWeights).length );
+                  if (Object.keys(positionIndexWeights).length !=0) {
+                    position_index_weights = positionIndexWeights;
+                    let updatedIndexData = JSON.stringify(position_index_weights, null, 2);
+                    fs.writeFileSync(positionWeightIndexPath, updatedIndexData);
+                  }
+                  // console.log(Object.keys(positionIndexWeights).length );
 
-  res.json({ message: 'MetricsVar updated successfully' });
-});
-const playerMetricsApi = 'http://localhost:5038/get-csv/playerMetrics';
-const playerProfilesApi = 'http://localhost:5038/get-csv/playerprofile';
+                  res.json({ message: 'MetricsVar updated successfully' });
+                });
+                const playerMetricsApi = 'http://localhost:5038/get-csv/playerMetrics';
+                const playerProfilesApi = 'http://localhost:5038/get-csv/playerprofile';
 
-// Assuming you define profilesData somewhere in your code
-let profilesData;
-const applyPositionWeights = (player, positionWeights) => {
-  const position = player['main_position'];
+                // Assuming you define profilesData somewhere in your code
+                let profilesData;
+                let totalSumArray;
+                const options = [];
+                const colors = ["#C70773", "#32CCA0", "#64BB9E", "#582E6E", "#86F749"];
+                const selected_features = [
+                  'xG_per_90', 'shots_per_90', 'ball_touches_in_penalty_area_per_90',
+                  'dribbles_per_90', 'successful_dribbles_percentage', 'defensive_actions_per_90', 'passes_per_90',
+                  'passes_to_penalty_area_per_90', 'progressives_passes_per_90'
+                ];
+                const  offensive_selected_metrics = ['goals_per_90', 'key_passes_per_90', 'offensive_duels_per_90', 'xG_per_shot', 'progressives_passes_per_90'];
+                const defensive_selected_metrics = ['interceptions_per_90_padj', 'defensive_duels_per_90', 'defensive_actions_per_90']
 
-  const applyWeightsRecursive = (data, weights) => {
-    if (typeof data === 'number') {
-      return data * weights;
-    } else if (typeof data === 'object') {
-      const result = {};
-      for (const key in data) {
-        if (weights[key] !== undefined) {
-          result[key] = applyWeightsRecursive(data[key], weights[key]);
-        } else {
-          result[key] = data[key];
-        }
-      }
-      return result;
-    } else {
-      return data; // Non-object, non-number values (e.g., strings) are not weighted
-    }
-  };
+                
+                const Offensive_selected_features=['xG_per_90','shots_per_90','xG_per_shot','dribbles_per_90','successful_dribbles_percentage','ball_touches_in_penalty_area_per_90'];
+                const Possession_selected_features=['passes_per_90','passes_to_penalty_area_per_90','progressives_passes_per_90'];
+                const Defensive_selected_features=['interceptions_per_90_padj','aerial_duels_won_percentage','defensive_actions_per_90'];
+                const Percentiles=['xG_per_90','shots_per_90','xG_per_shot','dribbles_per_90','successful_dribbles_percentage','ball_touches_in_penalty_area_per_90','passes_per_90','passes_to_penalty_area_per_90','progressives_passes_per_90','interceptions_per_90_padj','aerial_duels_won_percentage','defensive_actions_per_90']
+                let League_Avg = {};
+                let Pos_Avg={};
+                let recent_performance=[{}];
+                let weighted;
+                let Offensive_Sum=[];
+                let defensive_Sum=[];
+                let Offensive_metric=[];
+                let defensive_metric=[];
+                let totalSumOfe;
+                let totalSumDef;
+                let SumArrayOfe=[];
+                let SumArrayDefe=[];
+                let Percentiles_array=[];
+                let Percentiles_Object={};
+                  // Min-Max Scaling function
+                  const minMaxScaleArray = (data, newMin , newMax , decimalPlaces = 2) => {
+                    const min = Math.min(...data);
+                    const max = Math.max(...data);
+                    
+                    const scaledData = data.map(value =>
+                      parseFloat(((value - min) / (max - min) * (newMax - newMin) + newMin).toFixed(decimalPlaces))
+                    );
+                  
+                    return scaledData;
+                  };
+                  function calculatePercentiles(data) {
+                    if (data.length === 0) {
+                      return null; // No data to calculate percentiles
+                    }
+                  
+                    // Create an array of objects with value and index properties
+                    const dataWithIndex = data.map((value, index) => ({ value, index }));
+                  
+                    // Rank the data by value
+                    const rankedData = dataWithIndex.slice().sort((a, b) => a.value - b.value);
+                  
+                    // Calculate the percentile for each value using the ranked index
+                    const percentiles = dataWithIndex.map(({ value, index }) => {
+                      const rank = rankedData.findIndex(item => item.value === value);
+                      const percentile = (rank / (data.length - 1)) * 100;
 
-  if (positionWeights[position]) {
-    const weightedPlayer = { ...player };
-    let values  =  {};
-    
-    for (const [key, value] of Object.entries(positionWeights[position])) {
-      if(typeof value === 'object'  ){
-        for (const metricGroup in value) {
-          if (weightedPlayer[metricGroup]) {
-            const weights = value[metricGroup];
-            weightedPlayer[metricGroup] = applyWeightsRecursive(weightedPlayer[metricGroup], weights);
-            if (values.hasOwnProperty(key) ){
-              const newArray = [...values[key], weightedPlayer[metricGroup]];
-              console.log(newArray);
-            }
-            else{
+                      // Round to 2 decimal places
+                      return Math.round(percentile * 100) / 100;
+                    });
+                  
+                    return percentiles;
+                  }
+                  function create_pie_chart_option(selected_player){
+
+                    
+                    const option = {
+                      "legend": {"top": "bottom"},
+                      "toolbox": {
+                          "show": "True",
+                          "feature": {
+                              "mark": {"show": "True"},
+                              "dataView": {"show": "True", "readOnly": "False"},
+                              "restore": {"show": "True"},
+                              "saveAsImage": {"show": "True"}
+                          }
+                      },
+                      "series": [
+                          {
+                              "name": selected_player["wyscout_name"],
+                              "type": "pie",
+                              "radius": [50, 250],
+                              "center": ["50%", "50%"],
+                              "roseType": "area",
+                              "itemStyle": {"borderRadius": 8},
+                              "data": selected_player["percentiles"]
+                          }
+                      ]
+                  }
               
-            }
-            values["team_id"]=weightedPlayer["myTeam_id"];
+                  return option
+                  }
+                const applyPositionWeights = (player, position_weights) => {
+                  const position = player['main_position'];
 
-          } else {
-          }
+                  const applyWeightsRecursive = (data, weights) => {
+                    if (typeof data === 'number') {
+                      return data * weights;
+                    } else if (typeof data === 'object') {
+                      const result = {};
+                      for (const key in data) {
+                        if (weights[key] !== undefined) {
+                          result[key] = applyWeightsRecursive(data[key], weights[key]);
+                        } else {
+                          result[key] = data[key];
+                        }
+                      }
+                      return result;
+                    } else {
+                      return data; // Non-object, non-number values (e.g., strings) are not weighted
+                    }
+                  };
 
-        }  
-      }
-      // function sumOfObject(positionWeights) {
-      //   const sum = {};
-       
-      //   for (const key1 in positionWeights[position]) {
-      //      if (positionWeights[position].hasOwnProperty(key1)) {
-      //        sum[key1] = positionWeights[position][key1].key + positionWeights[position][key1].key;
-      //      }
+                  if (position_weights[position]) {
+                    const weightedPlayer = { ...player };
+                    let values = {};
+                    let sumValue = {};
+                    let sumValues = {};
 
-      //   }
-       
-      //   return sum;
-      //  }
+                    for (const [key, value] of Object.entries(position_weights[position])) {
+                      if (typeof value === 'object') {
+                        for (const metricGroup in value) {
+                          if (weightedPlayer[metricGroup]) {
+                            const weights = value[metricGroup];
+                            weightedPlayer[metricGroup] = applyWeightsRecursive(weightedPlayer[metricGroup], weights);
 
-      //  console.log(sumOfObject(positionWeights)); // Output: { A: 30, B: 70 }
-    }
+                            if (!values[key]) {
+                              values[key] = {};
+                            }
+                            values[key][metricGroup] = weightedPlayer[metricGroup];
+                            sumValue[key] = Object.values(values[key]).reduce((a, b) => a + b, 0);
+                            sumValue["minutes_played"]=weightedPlayer["90s"]*90;
+                            // console.log(weightedPlayer["myTeam_id"],sumValue);
+                          }
+                        }
+                      }
+                    }
 
-    return weightedPlayer;
-  }
+                    for (const [key, value] of Object.entries(position_index_weights[position])) {
+                      for (const [key1, value1] of Object.entries(sumValue)) {
+                        if (key === key1) {
+                          if (!sumValues[key1]) {
+                            sumValues[key1] = 0;
+                          }
+                          sumValues[key1] += value * value1;
+                          //  console.log(weightedPlayer["myTeam_id"],sumValues)
+                        }
+                      }
+                    }
 
-  return player; // If no weights are defined for the position, return the original player
-};
+                    // Calculate totalSum based on the sumValues
+                    const totalSum = Object.values(sumValues).reduce((a, b) => a + b, 0);
+                    //  console.log(weightedPlayer["myTeam_id"],totalSum)
+                      if(!totalSumArray){
+                      totalSumArray=[];
+                      weightedPlayer[`${position}_index`]=totalSumArray;
+                    }
+                    totalSumArray.push(totalSum);
+                    // Min-Max scale the standard-scaled totalSumArray
+                    // const finalScaledTotalSumArray = minMaxScaleArray(totalSumArray);
+                    // console.log(finalScaledTotalSumArray)
+                    player["indice"]=totalSum;
+                  }
 
-app.get('/getMergedPlayerData', async (req, res) => {
-  try {
-    const metricsResponse = await axios.get(playerMetricsApi);
-    const metricsData = metricsResponse.data;
+                  return player;
+                };
 
-    const profilesResponse = await axios.get(playerProfilesApi);
-    const profilesData = profilesResponse.data;
 
-    const mergedData = mergeDataframes(metricsData, profilesData);
+                app.get('/getMergedPlayerData', async (req, res) => {
+                  try {
+                    const metricsResponse = await axios.get(playerMetricsApi);
+                    const metricsData = metricsResponse.data;
 
-    // Apply position weights to each player in the merged data
-    const weightedMergedData = {};
-    for (const position in mergedData) {
-      weightedMergedData[position] = mergedData[position].map(player => {
-        return applyPositionWeights(player, position_weights);
-      });
-    }
+                    const profilesResponse = await axios.get(playerProfilesApi);
+                    const profilesData = profilesResponse.data;
 
-    res.json(weightedMergedData);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch and merge player data.' });
-  }
-});
+                    const mergedData = mergeDataframes(metricsData, profilesData);
 
-const mergeDataframes = (metricsData, profilesData) => {
-  const metricsArray = metricsData.data;
-  const profilesArray = profilesData.data;
+                    // Apply position weights to each player in the merged data
+                    const weightedMergedData = {};
+                    for (const position in mergedData) {
+                      weightedMergedData[position] = mergedData[position].map(player => {
+                        Pos_Avg[position] = {}; // Create an object for the position
 
-  const mergedArray = [];
-  for (const metricRow of metricsArray) {
-    const profileRow = profilesArray.find(profileRow => profileRow.myTeam_id === metricRow.myTeam_id);
-    if (profileRow) {
-      mergedArray.push({ ...metricRow, ...profileRow });
-    }
-  }
+                        selected_features.forEach(feature => {
+                          Pos_Avg[position][feature] = []; // Create an empty array for the feature
+                      
+                          mergedData[position].forEach(player => {
+                            if (player) {
+                              Pos_Avg[position][feature].push(player[feature]);
+                            }
+                          });
+                      
+                          const totalSum = Pos_Avg[position][feature].reduce((a, b) => a + b, 0);
+                          const average = totalSum / Pos_Avg[position][feature].length;
+                          Pos_Avg[position][feature] = parseFloat(average.toFixed(1));
 
-  const groupedByPosition = mergedArray.reduce((acc, player) => {
-    const position = player['main_position'];
-    if (!acc[position]) {
-      acc[position] = [];
-    }
-    acc[position].push(player);
-    return acc;
-  }, {});
+                        });
+                        return applyPositionWeights(player, position_weights);
+                      })
+                      ;
+                    }
+                    const finalScaledTotalSumArray = minMaxScaleArray(totalSumArray,0,100);
 
-  return groupedByPosition;
-};
+                // Your existing loop code
+                for (const position in weightedMergedData) {
+                  // Sort players within the position based on scaled indice values in descending order
+                  weightedMergedData[position].sort((a, b) => b.indice - a.indice);
 
+                  // Assign ranking based on the sorted order
+                  weightedMergedData[position].forEach((player, index) => {
+                    for (const scaledMetric in totalSumArray){
+                      if (player["indice"]==totalSumArray[scaledMetric]){
+                        player["indice"] = finalScaledTotalSumArray[scaledMetric]; // Update the scaled indice value if needed
+
+                      }
+                    }
+                    player.Classement = index + 1; // Assign rank based on sorted order
+                  });
+                 
+                    selected_features.forEach(feature => {
+                      weightedMergedData[position].forEach(player => {
+                        if (feature === "progressives_passes_per_90" || feature === "passes_to_penalty_area_per_90" || feature==="successful_dribbles_percentage") {
+                          return;
+                        }
+
+                        const performanceObject = {
+                          id:player["myTeam_id"],
+                          label: feature,
+                          player_value: player[feature],
+                          league_value: League_Avg[feature],
+                          position_value: Pos_Avg[position][feature],
+                          children: []
+                        };
+                        const valuesToSortChildPasses1=[
+                          player["passes_to_penalty_area_per_90"],
+                          League_Avg["passes_to_penalty_area_per_90"],
+                          Pos_Avg[position]["passes_to_penalty_area_per_90"]
+                        ]
+                        const valuesToSortChildPasses2=[
+                          player["progressives_passes_per_90"],
+                          League_Avg["progressives_passes_per_90"],
+                          Pos_Avg[position]["progressives_passes_per_90"]
+                        ]
+                        const valuesToSortChildDribble=[
+                          player["successful_dribbles_percentage"],
+                          League_Avg["successful_dribbles_percentage"],
+                          Pos_Avg[position]["successful_dribbles_percentage"]
+                        ]
+                        const sortedValuesChildDribble = valuesToSortChildDribble.slice().sort((a, b) => b - a);
+                        const sortedValuesChildPasses1 = valuesToSortChildPasses1.slice().sort((a, b) => b - a);
+                        const sortedValuesChildPasses2 = valuesToSortChildPasses2.slice().sort((a, b) => b - a);
+
+
+                        if (feature === "passes_per_90") {
+                          performanceObject["id"]=player["myTeam_id"],
+                          performanceObject["label"] = feature;
+                          performanceObject["player_value"] = player[feature];
+                          performanceObject["league_value"] = League_Avg[feature];
+                          performanceObject["position_value"] = Pos_Avg[position][feature];
+                          performanceObject["children"] = [];
+                          performanceObject.children.push({
+                            label: "passes_to_penalty_area_per_90",
+                            player_value: player["passes_to_penalty_area_per_90"],
+                            league_value: League_Avg["passes_to_penalty_area_per_90"],
+                            position_value: Pos_Avg[position]["passes_to_penalty_area_per_90"],
+                            player_color:getColor(player["passes_to_penalty_area_per_90"], sortedValuesChildPasses1),
+                            league_color:getColor(League_Avg["passes_to_penalty_area_per_90"], sortedValuesChildPasses1),
+                            position_color:getColor(Pos_Avg[position]["passes_to_penalty_area_per_90"], sortedValuesChildPasses1)
+                          }, {
+                            label: "progressives_passes_per_90",
+                            player_value: player["progressives_passes_per_90"],
+                            league_value: League_Avg["progressives_passes_per_90"],
+                            position_value: Pos_Avg[position]["progressives_passes_per_90"],
+                            player_color:getColor(player["progressives_passes_per_90"], sortedValuesChildPasses2),
+                            league_color:getColor(League_Avg["progressives_passes_per_90"], sortedValuesChildPasses2),
+                            position_color:getColor(Pos_Avg[position]["progressives_passes_per_90"], sortedValuesChildPasses2)
+                          });
+                        }
+                        else  if(feature==="dribbles_per_90") {
+
+                          performanceObject["id"]=player["myTeam_id"],
+                          performanceObject["label"] = feature;
+                          performanceObject["player_value"] = player[feature];
+                          performanceObject["league_value"] = League_Avg[feature];
+                          performanceObject["position_value"] = Pos_Avg[position][feature];
+                          performanceObject["children"] = [];
+                          performanceObject.children.push({
+                            label: "successful_dribbles_percentage",
+                            player_value: player["successful_dribbles_percentage"],
+                            league_value: League_Avg["successful_dribbles_percentage"],
+                            position_value: Pos_Avg[position]["successful_dribbles_percentage"],
+                            player_color:getColor(player["successful_dribbles_percentage"], sortedValuesChildDribble),
+                            league_color:getColor(League_Avg["successful_dribbles_percentage"], sortedValuesChildDribble),
+                            position_color:getColor(Pos_Avg[position]["successful_dribbles_percentage"], sortedValuesChildDribble)
+                          });
+                      
+                        }
+                        function getColor(value, sortedValues) {
+                          const index = sortedValues.indexOf(value);
+                          const totalValues = sortedValues.length;
+                        
+                          if (index === 0) {
+                            return '#009900'; // Highest value
+                          } else if (index === totalValues - 1) {
+                            return '#ff3300'; // Lowest value
+                          } else {
+                            return '#FF69B4'; // Middle value
+                          }
+                        }
+                        
+                        // Assuming you have an array of values to sort
+                        const valuesToSort = [
+                          performanceObject["player_value"],
+                          performanceObject["league_value"],
+                          performanceObject["position_value"],
+                        ];
+                       
+                        
+                        // Sort the values in descending order
+                        const sortedValues = valuesToSort.slice().sort((a, b) => b - a);
+                       
+                        // Assign colors based on position
+                        performanceObject["player_color"] = getColor(performanceObject["player_value"], sortedValues);
+                        performanceObject["league_color"] = getColor(performanceObject["league_value"], sortedValues);
+                        performanceObject["position_color"] = getColor(performanceObject["position_value"], sortedValues);
+                        
+
+                        recent_performance.push(performanceObject); 
+                        
+                        // console.log(player["myTeam_id"])
+                        // Push the performance object into the array
+                      });
+                      
+                      
+                      
+                    });
+                    weighted = weightedMergedData[position].map(player => {
+                      const matchingMetrics = recent_performance
+                        .filter(metric => metric["id"] === player["myTeam_id"])
+                        .map(({ id, ...rest }) => rest); // Remove "id" property from each metric
+                    
+                      // Add the recent_performances key with the array of matching metrics to the player
+                      player["recent_performances"] = matchingMetrics;
+                    
+                      return player;
+                    });
+                    weightedMergedData[position].map(player=>{
+                      offensive_selected_metrics.forEach(feature=>{
+
+                        Offensive_metric[feature]=player[feature];
+                        totalSumOfe = Object.values(Offensive_metric).reduce((a, b) => a + b, 0);
+                      })
+                      defensive_selected_metrics.forEach(feature=>{
+
+                        defensive_metric[feature]=player[feature];
+                        totalSumDef = Object.values(defensive_metric).reduce((a, b) => a + b, 0);
+                      })
+                      player["total_offense"]=totalSumOfe;
+                      SumArrayOfe.push(totalSumOfe);   
+                      player["total_defence"]=totalSumDef;
+                      SumArrayDefe.push(totalSumDef);
+
+                    })
+                    
+                }
+                const finalScaledSumArrayOfe = minMaxScaleArray(SumArrayOfe,0,10);
+                const finalScaledSumArrayDef = minMaxScaleArray(SumArrayDefe,0,10);
+
+                for (const position in weightedMergedData) {
+                  weightedMergedData[position].forEach((player) => {
+                    for (const scaledMetric in SumArrayOfe){
+                      if (player["total_offense"]==SumArrayOfe[scaledMetric]){
+                         player["total_offense"] = finalScaledSumArrayOfe[scaledMetric]; 
+                      }
+                    }
+                  });
+                }
+                for (const position in weightedMergedData) {
+                  weightedMergedData[position].forEach((player) => {
+                    for (const scaledMetric in SumArrayDefe){
+                      if (player["total_defence"]==SumArrayDefe[scaledMetric]){
+                         player["total_defence"] = finalScaledSumArrayDef[scaledMetric]; 
+                      }
+                    }
+                  });
+                }
+                
+                
+              const Min_Ofe = Math.min(...finalScaledSumArrayOfe);
+              const Max_Ofe = Math.max(...finalScaledSumArrayOfe);
+
+              const Min_Def = Math.min(...finalScaledSumArrayDef);
+              const Max_Def = Math.max(...finalScaledSumArrayDef);
+
+              for (const position in weightedMergedData) {
+
+                weightedMergedData[position].forEach(selected_player => {
+                  const resultlist_Ofe = [];
+                  const resultlist_Def = [];
+
+                  weightedMergedData[position].forEach(player => {
+                    if (player["90s"] > selected_player["90s"] * 1 / 3) {
+                      //Offensive
+                      const interval_Ofe = (Max_Ofe - Min_Ofe) / 5;
+                      const intervals_Ofe = Array.from({ length: 6 }, (_, i) => Min_Ofe + i * interval_Ofe);
+                      const colors = ['#f6412f', '#fca17e', '#f9e42e', '#74b142', '#446f1a'];
+                      const colorIndex_Ofe = intervals_Ofe.findIndex(interval_Ofe => player["total_offense"] <= interval_Ofe);
+                      const assignedColor_Ofe =  colors[colorIndex_Ofe-1];
+
+                        //defensive
+                      const interval_Def = (Max_Def - Min_Def) / 5;
+                      const intervals_Def = Array.from({ length: 6 }, (_, i) => Min_Def + i * interval_Def);
+                      const colorIndex_Def = intervals_Def.findIndex(interval_Def => player["total_defence"] <= interval_Def);
+                      //assign color
+                      const assignedColor_Def =  colors[colorIndex_Def-1];
+                      resultlist_Ofe.push({
+                        'total_offense': player['total_offense'],
+                        'item Style': {'color':assignedColor_Ofe},
+                        'symbolSize': player['wyscout_name']=== selected_player['wyscout_name'] ? 23 : 15,
+                        'fullname': player['wyscout_name'],
+                        'img_src': player['image_path'],
+                      })
+                      resultlist_Def.push({
+                        'total_defence': player['total_defence'],
+                        'item Style': {'color':assignedColor_Def},
+                        'symbolSize': player['wyscout_name']=== selected_player['wyscout_name'] ? 23 : 15,
+                        'fullname': player['wyscout_name'],
+                        'img_src': player['image_path'],
+                      })
+                    }    
+                    else{
+                      return;
+                    }  
+                   })
+                  selected_player["offensive_performces"]=resultlist_Ofe;
+                  selected_player["defensive_performances"]=resultlist_Def;
+                  });
+                  weightedMergedData[position].forEach(selected_player=>{
+
+                   Offensive_selected_features.forEach(feature=>{
+                    const result=[];
+                    weightedMergedData[position].forEach(player=>{
+                      if(selected_player["wyscout_name"]===player["wyscout_name"]){
+                        result.push(selected_player[feature])
+                      }
+                      else{
+                        result.push(player[feature])
+                      }
+                    })
+                    const  result_percentiles=calculatePercentiles(result);
+                   for (const percentiledMetric in result){
+                     if(selected_player[feature]===result[percentiledMetric]){
+                       selected_player[`${feature}_percentile`]=result_percentiles[percentiledMetric];
+                     }
+                   }
+                  })
+                  Defensive_selected_features.forEach(feature=>{
+                    const result=[];
+                    weightedMergedData[position].forEach(player=>{
+                      if(selected_player["wyscout_name"]===player["wyscout_name"]){
+                        result.push(selected_player[feature])
+                      }
+                      else{
+                        result.push(player[feature])
+                      }
+                    })
+                    const  result_percentiles=calculatePercentiles(result);
+                   for (const percentiledMetric in result){
+                     if(selected_player[feature]===result[percentiledMetric]){
+                       selected_player[`${feature}_percentile`]=result_percentiles[percentiledMetric];
+                     }
+                   }
+                  })
+                 Possession_selected_features.forEach(feature=>{
+                    const result=[];
+                    weightedMergedData[position].forEach(player=>{
+                      if(selected_player["wyscout_name"]===player["wyscout_name"]){
+                        result.push(selected_player[feature])
+                      }
+                      else{
+                        result.push(player[feature])
+                      }
+                    })
+                    const  result_percentiles=calculatePercentiles(result);
+                   for (const percentiledMetric in result){
+                     if(selected_player[feature]===result[percentiledMetric]){
+                       selected_player[`${feature}_percentile`]=result_percentiles[percentiledMetric];
+                     }
+                   }
+                  })
+                  Possession_selected_features.forEach(feature => {
+                    let Percentile = { name: feature, value: selected_player[`${feature}_percentile`] };
+                    Percentiles_Object["Possession"] = Percentiles_Object["Possession"] || [];
+                    Percentiles_Object["Possession"].push(Percentile);
+                    delete selected_player[`${feature}_percentile`];
+                });
+                
+                Defensive_selected_features.forEach(feature => {
+                    let Percentile = { name: feature, value: selected_player[`${feature}_percentile`] };
+                    Percentiles_Object["Defensive"] = Percentiles_Object["Defensive"] || [];
+                    Percentiles_Object["Defensive"].push(Percentile);
+                    delete selected_player[`${feature}_percentile`];
+                });
+                
+                Offensive_selected_features.forEach(feature => {
+                    let Percentile = { name: feature, value: selected_player[`${feature}_percentile`] };
+                    Percentiles_Object["Offensive"] = Percentiles_Object["Offensive"] || [];
+                    Percentiles_Object["Offensive"].push(Percentile);
+                    delete selected_player[`${feature}_percentile`];
+                });
+                
+                // Assign the Percentiles_Object object to the selected_player
+                  selected_player["percentiles"] = Percentiles_Object;
+                  Percentiles_Object={};
+                  const player_radar_option = {
+                    "joueur": selected_player["wyscout_name"],
+                    "equipe": {
+                        "nom": selected_player["Equipe"],
+                        "logo": `logos/${selected_player["Equipe"]}.png`
+                    },
+                    "main_position": {
+                        "key": selected_player["main_position"],
+                        "label": selected_player["template"]
+                    },
+                    "position": selected_player["position_full_name"],
+                    "age": (selected_player["age"]),
+                    "minutes_played": selected_player["minutes_played"],
+                    "option": create_pie_chart_option( selected_player)
+                }
+                selected_player["player_radar_option"]=player_radar_option;
+                delete selected_player[`percentiles`];
+
+                })
+                   
+                }
+                res.json("Succes");
+                  res.app.get('/api/Data', (req, res) => {
+                    res.json(weightedMergedData);
+                  });
+                  } catch (error) {
+                    console.error(error);
+                    res.status(500).json({ error: 'Failed to fetch and merge player data.' });
+                  }
+                });
+
+                const mergeDataframes = (metricsData, profilesData) => {
+                  const metricsArray = metricsData.data;
+                  const profilesArray = profilesData.data;
+
+                  const mergedArray = [];
+                  for (const metricRow of metricsArray) {
+                    const profileRow = profilesArray.find(profileRow => profileRow.myTeam_id === metricRow.myTeam_id);
+                    if (profileRow) {
+                      mergedArray.push({ ...metricRow, ...profileRow });
+                    }
+                    const featureObjects = {};
+
+                    selected_features.forEach(feature => {
+                      featureObjects[feature] = []; // Create an empty array for the feature
+                    
+                      const metrics = Object.values(mergedArray);
+                    
+                      metrics.forEach(Metric => {
+                        if (Metric) {
+                          featureObjects[feature].push(Metric[feature]);
+                        }
+                      });
+                      const totalSum = featureObjects[feature].reduce((a, b) => a + b, 0);
+                      const average = totalSum/featureObjects[feature].length;
+                      League_Avg[feature] = parseFloat(average.toFixed(1));
+                    });
+
+                  }
+                  const groupedByPosition = mergedArray.reduce((acc, player) => {
+                    const position = player['main_position'];
+                    if (!acc[position]) {
+                      acc[position] = [];
+                    }
+                    acc[position].push(player);
+                    return acc;
+                  }, {});
+                  return groupedByPosition;
+                };
    
-//  CLose Connection
+// //  CLose Connection
 app.on('close', () => {
   dbConnection.end((err) => {
     if (err) {
@@ -1330,28 +2124,28 @@ app.on('close', () => {
 
 
 // // Anas
-// app.get('/players',(req,res)=>{
-//   fs.readFile('./players.json', 'utf8', (err, data) => {
-//     if (err) {
-//       console.error('Error reading JSON file:', err);
-//       res.status(500).json({ error: 'Internal Server Error' });
-//       return;
-//     }
+ app.get('/players',(req,res)=>{
+   fs.readFile('./players.json', 'utf8', (err, data) => {
+     if (err) {
+       console.error('Error reading JSON file:', err);
+       res.status(500).json({ error: 'Internal Server Error' });
+       return;
+     }
     
-//     try {
-//       const jsonData = JSON.parse(data) ;
-//       res.status(200).json(jsonData);
-//     } catch (parseError) {
-//       console.error('Error parsing JSON:', parseError);
-//       res.status(500).json({ error: 'Internal Server Error' });
-//     }
-//   });
-// })
-// const MIME_TYPE_MAP = {
-//   'image/png': 'png',
-//   'image/jpeg': 'jpeg',
-//   'image/jpg': 'jpg',
-// };
+     try {
+       const jsonData = JSON.parse(data) ;
+       res.status(200).json(jsonData);
+     } catch (parseError) {
+       console.error('Error parsing JSON:', parseError);
+       res.status(500).json({ error: 'Internal Server Error' });
+     }
+   });
+ })
+ const MIME_TYPE_MAP = {
+   'image/png': 'png',
+   'image/jpeg': 'jpeg',
+   'image/jpg': 'jpg',
+ };
 
 // const FileUPload = multer({
 //   storage: multer.diskStorage({
