@@ -226,7 +226,7 @@ app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
           const updatePromises = [];
           jsonArray.forEach((data) => {
             const values = [
-              parseInt(data.myteam_id),
+              parseInt(data.myTeam_id),
               parseFloat(data.defensive_duels_per_90),
               parseFloat(data.defensive_duels_won_percentage),
               parseFloat(data.aerial_duels_per_90),
@@ -1728,8 +1728,7 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                       })
                       ;
                     }
-                    const finalScaledTotalSumArray = minMaxScaleArray(totalSumArray,0,100);
-
+                     const finalScaledTotalSumArray = minMaxScaleArray(totalSumArray,0,100);
                 // Your existing loop code
                 for (const position in weightedMergedData) {
                   // Sort players within the position based on scaled indice values in descending order
@@ -1740,7 +1739,6 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                     for (const scaledMetric in totalSumArray){
                       if (player["indice"]==totalSumArray[scaledMetric]){
                         player["indice"] = finalScaledTotalSumArray[scaledMetric]; // Update the scaled indice value if needed
-
                       }
                     }
                     player.Classement = index + 1; // Assign rank based on sorted order
