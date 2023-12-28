@@ -38,6 +38,51 @@ dbConnection.connect((err) => {
   console.log('Connected to MySQL database');
 });
 const pool = mysql.createPool(dbConfig);
+const position_mapping = {
+  'RCMF': 'CMF', // Right Center Midfield to Center Midfield
+  'LCMF': 'CMF', // Left Center Midfield to Center Midfield
+  'RDMF': 'DMF', // Right Defensive Midfield to Defensive Midfield
+  'LDMF': 'DMF', // Left Defensive Midfield to Defensive Midfield
+  'RCB': 'CB',   // Right Center Back to Center Back
+  'LCB': 'CB',   // Left Center Back to Center Back
+  'LAMF': 'LW',  // Left Attacking Midfield to Left Wing
+  'RAMF': 'RW',  // Right Attacking Midfield to Right Wing
+  'RWF': 'CF',   // Right Wing Forward to Center Forward
+  'LWF': 'CF',   // Left Wing Forward to Center Forward
+  'LB': 'LB',    // Left Back
+  'AMF': 'AMF',  // Attacking Midfield
+  'CF': 'CF',    // Center Forward
+  'RB': 'RB',    // Right Back
+  'LWB': 'LB',   // Left Wing Back to Left Back
+  'RWB': 'RB',   // Right Wing Back to Right Back
+  'DMF': 'DMF',  // Defensive Midfield
+  'CMF': 'CMF',  // Center Midfield
+  'RW': 'RW',    // Right Wing
+  'LW': 'LW'     // Left Wing
+}
+const position_to_template = {
+  'AMF': 'Winger/Attacking Midfielder',
+  'CF': 'Striker',
+  'DMF': 'Midfielder',
+  'CB': 'Defender',
+  'LB': 'Full Wing Back',
+  'RB': 'Full Wing Back',
+  'RW': 'Winger/Attacking Midfielder',
+  'CMF': 'Midfielder',
+  'LW': 'Winger/Attacking Midfielder'
+}
+const poste_mapping_dict = {
+  'AMF': 'Milieu offensif',
+  'CB': 'Defenseur central',
+  'CF': 'Attaquant',
+  'CMF': 'Milieu central',
+  'DMF': 'Milieu defensif',
+  'LB': 'Arriéré gauche',
+  'LW': 'Ailier gauche',
+  'RB': 'Arriéré droit',
+  'RW': 'Ailier droit'
+}
+
 //--------------------------player Profile POST
 app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
   console.log('Reached /upload-csv/playerProfile endpoint');
@@ -57,49 +102,91 @@ app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
     csvtojson()
       .fromString(req.file.buffer.toString())
       .then((jsonArray) => {
-        const idCheck = jsonArray.map((data) => data.myteam_id);
+        const idCheck = jsonArray.map((data) => data.Joueur);
         const placeholders = idCheck.map(() => '?').join(', ');
-        const searchQuery = `SELECT myteam_id FROM PlayerProfile WHERE myteam_id IN (${placeholders})`;
+        const searchQuery = `SELECT wyscout_name FROM PlayerProfile WHERE wyscout_name IN (${placeholders})`;
                 // Execute the search query
         dbConnection.query(searchQuery, idCheck, (searchErr, searchResults) => {
         if (searchErr) {
-        console.error('Error searching for myteam_id in PlayerProfile:', searchErr);
+        console.error('Error searching for wyscout_name in PlayerProfile:', searchErr);
         // Handle the error as needed
         dbConnection.rollback(() => {
           res.status(500).json({
-            error: 'Error searching for myteam_id in PlayerProfile.',
+            error: 'Error searching for wyscout_name in PlayerProfile.',
             errorMessage: searchErr.sqlMessage,
           });
         });
         return;
         }
-        const existingIds =Array.from(new Set(searchResults.map(result => result.myteam_id)));
+        const existingIds =Array.from(new Set(searchResults.map(result => result.Joueur)));
         const insertPromises = [];
         const updatePromises = [];
+        let template;
+        let position_full_name;
         jsonArray.forEach((data) => {
-          const values = [
-            parseInt(data.myteam_id),
-            data.wyscout_name,
-            data.first_name,
-            data.last_name,
-            data['90s'],
-            data.age,
-            data.minutes_played,
-            data.foot,
-            data.height,
-            data.weight,
-            data.country_of_birth,
-            data.main_position,
-            data.template,
-            data.position_full_name,
-            data.season,
-            data.image_path,
-          ];
-          if (existingIds.includes(+data.myteam_id)) {            
+          const first_name = 'first_name';
+          const season='23-24';
+          const joueurValues = data.Joueur.split('.'); // Split the Joueur values by dot
+          const last_name = joueurValues.length > 1 ? joueurValues[1].trim() : data.Joueur.trim(); // Take the value after the dot
+          const placeValues = data.Place.split(','); // Split the values by comma
+          const firstPlace = placeValues.length > 0 ? placeValues[0].trim() : ''; // Take the first value and trim any extra spaces  
+          if (position_mapping.hasOwnProperty(firstPlace)  ) {
+            data.Place = position_mapping[firstPlace];
+
+        }
+        const _90s = Math.round((parseInt(data['Minutes jouées']) / 90) * 100) / 100; // Round to 2 decimal places
+        if( position_to_template.hasOwnProperty(data.Place)&& poste_mapping_dict.hasOwnProperty(data.Place)){
+           template=position_to_template[data.Place];
+           position_full_name=poste_mapping_dict[data.Place]
+        }
+        const values = [
+          data.Joueur || '',
+          first_name,
+          last_name,
+          data.Équipe || '',
+          parseFloat(_90s),
+          parseInt(data.Âge) || 0,
+          parseInt(data['Minutes jouées']) || 0,
+          data.Pied || '',
+          parseInt(data.Taille) || 0,
+          parseInt(data.Poids) || 0,
+          data["Pays de naissance"] || '',
+          data.Place, // Replace NaN with 0
+          template,
+          position_full_name,
+          season
+      ];
+      const values_Metrics=[
+        data.Joueur || '',
+        data.Équipe || '',
+        (data["Duels défensifs par 90"] || 0),
+        (data[" Duels défensifs gagnés, %	"] || 0),
+        (data[" Duels aériens par 90	"] || 0),
+        (data[" Duels aériens gagnés, %		"] || 0),
+        (data["Tacles glissés PAdj	"] || 0),
+        (data["Interceptions PAdj	"] || 0),
+        (data["Fautes par 90	"] || 0),
+        (data["Cartons jaunes	"] || 0),
+        (data["Cartons rouges	"] || 0),
+        (data["Buts par 90"] || 0),
+        (data[" Buts hors penalty par 90"] || 0),
+        (data["xG par 90	"] || 0),
+        (data["Tirs par 90"] || 0),
+        (data["Tirs à la cible, %	"] || 0),
+        (data["Taux de conversion but/tir	"] || 0),
+        (data["Passes décisives par 90	"] || 0),
+        (data["Centres par 90	"] || 0),
+        (data["Сentres précises, %		"] || 0),
+        (data["Сentres précises, %		"] || 0),
+        
+      ]
+
+          console.log(values);
+
+          if (existingIds.includes(+data.Joueur)) {            
             // If myteam_id exists
             const updatePromise = new Promise((resolve, reject) => {
               const updateQuery = 'UPDATE PlayerProfile SET ' +
-              'wyscout_name = ?, ' +
               'first_name= ?, ' +
               'last_name = ?, ' +
               '90s = ?, ' +
@@ -113,26 +200,22 @@ app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
               'template = ?, ' +
               'position_full_name = ?, ' +
               'season = ?, ' +
-              'image_path = ? ' +
-              'WHERE myteam_id = ?';
-              dbConnection.query(updateQuery, [...values.slice(1), data.myteam_id], (updateErr, updateResults) => {
+              'WHERE wyscout_name = ?';
+              dbConnection.query(updateQuery, [...values.slice(1), data.Joueur], (updateErr, updateResults) => {
                 if (updateErr) {
                   console.error('Error updating data in MySQL table:', updateErr);
                   reject(updateErr);
                 } else {
-                  console.log(`Data updated for myteam_id :  ${data.myteam_id} successfully`);
+                  console.log(`Data updated for Joueur :  ${data.Joueur} successfully`);
                   resolve(updateResults);
                 }
               });
             });
             updatePromises.push(updatePromise);
           } else {
-            // If myteam_id doesn't exist
+//            If wyscout_name doesn't exist
             const insertPromise = new Promise((resolve, reject) => {
-              const insertQuery = 'INSERT INTO PlayerProfile(myTeam_id, wyscout_name, first_name, last_name, ' +
-              '90s, age, minutes_played, foot, height, weight, country_of_birth, ' +
-              'main_position, template, position_full_name, season, image_path) VALUES ?';
-          
+             const insertQuery = 'INSERT INTO PlayerProfile (wyscout_name, first_name, last_name, Team, `90s`, age, minutes_played, foot, height, weight, country_of_birth, main_position, template, position_full_name, season) VALUES ?';
               dbConnection.query(insertQuery, [[values]], (insertErr, insertResults) => {
                 if (insertErr) {
                   console.error('Error inserting data into MySQL table:', insertErr);
@@ -147,26 +230,26 @@ app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
         });
         console.log('Search Query:', dbConnection.format(searchQuery, idCheck));
         console.log('existed  IDs:', existingIds);
-        // Execute all update promises
+        //Execute all update promises
         Promise.all(updatePromises)
           .then(() => {
             // Execute all insert promises
             return Promise.all(insertPromises);
           })
           .then(() => {
-            // Commit the transaction
-            dbConnection.commit((commitErr) => {
-              if (commitErr) {
-                console.error('Error committing MySQL transaction:', commitErr);
-                res.status(500).json({
-                  error: 'Error committing MySQL transaction.',
-                  errorMessage: commitErr.sqlMessage,
-                });
-              } else {
+//             Commit the transaction
+             dbConnection.commit((commitErr) => {
+               if (commitErr) {
+                 console.error('Error committing MySQL transaction:', commitErr);
+                 res.status(500).json({
+                   error: 'Error committing MySQL transaction.',
+                   errorMessage: commitErr.sqlMessage,
+                 });
+               } else {
                 // Send success response
-                res.json({ success: true });
-              }
-            });
+                 res.json({ success: true });
+               }
+             });
           })
           .catch((error) => {
             // Handle errors from promises
@@ -777,6 +860,66 @@ app.post('/upload-csv/matchesJunior',upload.single('csvFile'),(req,res)=>{
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded.' });
   }
+    // Start a transaction
+    dbConnection.beginTransaction((beginTransactionErr) => {
+      if (beginTransactionErr) {
+        console.error('Error starting MySQL transaction:', beginTransactionErr);
+        return res.status(500).json({
+          error: 'Error starting MySQL transaction.',
+          errorMessage: beginTransactionErr.sqlMessage,
+        });
+      }
+      csvtojson()
+        .fromString(req.file.buffer.toString())
+        .then((jsonArray) => {
+          // Insert new values into the table
+          const insertQuery =
+            'INSERT INTO match_results (region,equipe_domicile,buts_domicile,buts_visiteuse,equipe_visiteuse,journee,type_champions,date,heure ) VALUES ?';
+            const values = jsonArray.map(data => [
+              data.region,
+              data.equipe_domicile,
+              !isNaN(data.buts_domicile) ? parseInt(data.buts_domicile) : null,
+              !isNaN(data.buts_visiteuse) ? parseInt(data.buts_visiteuse) : null,
+              data.equipe_visiteuse,
+              parseInt(data.journee),
+              data.type_champions,
+              new Date(data.date),
+              data.heure,
+            ]).filter(row => row.slice(2, 4).every(value => value !== null));
+        
+          dbConnection.query(insertQuery, [values], (insertErr, insertResults) => {
+            if (insertErr) {
+              console.error('Error inserting data into MySQL table:', insertErr);
+              dbConnection.rollback(() => {
+                res.status(500).json({
+                  error: 'Error inserting data into MySQL table.',
+                  errorMessage: insertErr.sqlMessage,
+                });
+              });
+            } else {
+              console.log('Data inserted into MySQL table successfully');
+              dbConnection.commit((commitErr) => {
+                if (commitErr) {
+                  console.error('Error committing MySQL transaction:', commitErr);
+                  res.status(500).json({
+                    error: 'Error committing MySQL transaction.',
+                    errorMessage: commitErr.sqlMessage,
+                  });
+                } else {
+                  res.json({ success: true, insertedRows: insertResults.affectedRows });
+                }
+              });
+            }
+          });
+        })
+        .catch((error) => {
+          console.error('Error converting CSV to JSON:', error);
+  
+          dbConnection.rollback(() => {
+            res.status(500).json({ error: 'Error converting CSV to JSON.' });
+          });
+        });
+    });
   
 })
 //--------------------MatchesProfiles POST
@@ -1751,7 +1894,7 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                         }
 
                         const performanceObject = {
-                          id:player["myTeam_id"],
+                          id:player["wyscout_name"],
                           label: feature,
                           player_value: player[feature],
                           league_value: League_Avg[feature],
@@ -1779,7 +1922,7 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
 
 
                         if (feature === "passes_per_90") {
-                          performanceObject["id"]=player["myTeam_id"],
+                          performanceObject["id"]=player["wyscout_name"],
                           performanceObject["label"] = feature;
                           performanceObject["player_value"] = player[feature];
                           performanceObject["league_value"] = League_Avg[feature];
@@ -1805,7 +1948,7 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                         }
                         else  if(feature==="dribbles_per_90") {
 
-                          performanceObject["id"]=player["myTeam_id"],
+                          performanceObject["id"]=player["wyscout_name"],
                           performanceObject["label"] = feature;
                           performanceObject["player_value"] = player[feature];
                           performanceObject["league_value"] = League_Avg[feature];
@@ -1854,7 +1997,7 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
 
                         recent_performance.push(performanceObject); 
                         
-                        // console.log(player["myTeam_id"])
+                        // console.log(player["wyscout_name"])
                         // Push the performance object into the array
                       });
                       
@@ -1863,7 +2006,7 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                     });
                     weighted = weightedMergedData[position].map(player => {
                       const matchingMetrics = recent_performance
-                        .filter(metric => metric["id"] === player["myTeam_id"])
+                        .filter(metric => metric["id"] === player["wyscout_name"])
                         .map(({ id, ...rest }) => rest); // Remove "id" property from each metric
                     
                       // Add the recent_performances key with the array of matching metrics to the player
@@ -2073,10 +2216,9 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                 const mergeDataframes = (metricsData, profilesData) => {
                   const metricsArray = metricsData.data;
                   const profilesArray = profilesData.data;
-
                   const mergedArray = [];
                   for (const metricRow of metricsArray) {
-                    const profileRow = profilesArray.find(profileRow => profileRow.myTeam_id === metricRow.myTeam_id);
+                    const profileRow = profilesArray.find(profileRow => profileRow["wyscout_name"] === metricRow["wyscout_name"]);
                     if (profileRow) {
                       mergedArray.push({ ...metricRow, ...profileRow });
                     }
