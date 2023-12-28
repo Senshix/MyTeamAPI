@@ -159,29 +159,48 @@ app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
       const values_Metrics=[
         data.Joueur || '',
         data.Équipe || '',
-        (data["Duels défensifs par 90"] || 0),
-        (data[" Duels défensifs gagnés, %	"] || 0),
-        (data[" Duels aériens par 90	"] || 0),
-        (data[" Duels aériens gagnés, %		"] || 0),
-        (data["Tacles glissés PAdj	"] || 0),
-        (data["Interceptions PAdj	"] || 0),
-        (data["Fautes par 90	"] || 0),
-        (data["Cartons jaunes	"] || 0),
-        (data["Cartons rouges	"] || 0),
-        (data["Buts par 90"] || 0),
-        (data[" Buts hors penalty par 90"] || 0),
-        (data["xG par 90	"] || 0),
-        (data["Tirs par 90"] || 0),
-        (data["Tirs à la cible, %	"] || 0),
-        (data["Taux de conversion but/tir	"] || 0),
-        (data["Passes décisives par 90	"] || 0),
-        (data["Centres par 90	"] || 0),
-        (data["Сentres précises, %		"] || 0),
-        (data["Сentres précises, %		"] || 0),
-        
+        parseFloat(data["Duels défensifs par 90"] || 0),
+        parseFloat(data[" Duels défensifs gagnés, %	"] || 0),
+        parseFloat(data[" Duels aériens par 90	"] || 0),
+        parseFloat(data[" Duels aériens gagnés, %		"] || 0),
+        parseFloat(data["Tacles glissés PAdj	"] || 0),
+        parseFloat(data["Interceptions PAdj	"] || 0),
+        parseFloat(data["Fautes par 90	"] || 0),
+        parseFloat(data["Cartons jaunes	"] || 0),
+        parseFloat(data["Cartons rouges	"] || 0),
+        parseFloat(data["Buts par 90"] || 0),
+        parseFloat(data[" Buts hors penalty par 90"] || 0),
+        parseFloat(data["xG par 90	"] || 0),
+        parseFloat(data["Tirs par 90"] || 0),
+        parseFloat(data["Tirs à la cible, %	"] || 0),
+        parseFloat(data["Taux de conversion but/tir	"] || 0),
+        parseFloat(data["Passes décisives par 90	"] || 0),
+        parseFloat(data["Centres par 90	"] || 0),
+        parseFloat(data["Сentres précises, %	"] || 0),
+        parseFloat(data["Dribbles par 90	"] || 0),
+        parseFloat(data["Dribbles réussis, %	"] || 0),
+        parseFloat(data["Duels offensifs par 90"] || 0),
+        parseFloat(data["Touches de balle dans la surface de réparation sur 90"] || 0),
+        parseFloat(data["Courses progressives par 90"] || 0),
+        parseFloat(data["Passes réceptionnées par 90	"] || 0),
+        parseFloat(data["xA par 90	"] || 0),
+        parseFloat(data["Passes décisives avec tir par 90"] || 0),
+        parseFloat(data["Passes vers la surface de réparation par 90"] || 0),
+        parseFloat(data["Passes vers la surface de réparation précises, %"] || 0),
+        parseFloat(data["Passes pénétrantes par 90"] || 0),
+        parseFloat(data["Passes progressives par 90"] || 0),
+        parseFloat(data["Passes progressives précises, %"] || 0),
+        parseFloat(data["xG/Tir"] || 0),
+        parseFloat(data["Longues passes réceptionnées par 90"] || 0),
+        parseFloat(data["Passes longues par 90"] || 0),
+        parseFloat(data["Longues passes précises, %"] || 0),
+        parseFloat(data["Passes avant par 90"] || 0),
+        parseFloat(data["Passes précises, %"] || 0),
+        parseFloat(data["Passes par 90"] || 0),
+        parseFloat(data["Passes en avant précises, %"] || 0),
+        parseFloat(data["Actions défensives réussies par 90"] || 0),
       ]
 
-          console.log(values);
 
           if (existingIds.includes(+data.Joueur)) {            
             // If myteam_id exists
@@ -215,8 +234,30 @@ app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
           } else {
 //            If wyscout_name doesn't exist
             const insertPromise = new Promise((resolve, reject) => {
-             const insertQuery = 'INSERT INTO PlayerProfile (wyscout_name, first_name, last_name, Team, `90s`, age, minutes_played, foot, height, weight, country_of_birth, main_position, template, position_full_name, season) VALUES ?';
+              const insertQueryMetrics =
+              'INSERT INTO playerMetrics (wyscout_name,Team, defensive_duels_per_90, ' +
+              'defensive_duels_won_percentage, aerial_duels_per_90, aerial_duels_won_percentage, ' +
+              'sliding_tackles_per_90_padj, interceptions_per_90_padj, fouls_per_90, yellow_cards, ' +
+              'red_cards, goals_per_90, non_penalty_goals_per_90, xG_per_90, shots_per_90, ' +
+              'shots_on_target_percentage, shot_conversion_rate, assists_per_90, crosses_per_90, ' +
+              'accurate_crosses_percentage, dribbles_per_90, successful_dribbles_percentage, ' +
+              'offensive_duels_per_90, ball_touches_in_penalty_area_per_90, progressive_runs_per_90, ' +
+              'passes_received_per_90, xA_per_90, assists_with_shots_per_90, passes_to_penalty_area_per_90, ' +
+              'accurate_passes_to_penalty_area_percentage,key_passes_per_90, progressives_passes_per_90, ' +
+              'progressives_passes_accuracy, xG_per_shot, long_passes_received_per_90, ' +
+              'long_passes_per_90, long_passes_accuracy, forward_passes_per_90, ' +
+              'accurate_passes, passes_per_90, accurate_forward_passes, defensive_actions_per_90) VALUES ?';
+          
+              const insertQuery = 'INSERT INTO PlayerProfile (wyscout_name, first_name, last_name, Team, `90s`, age, minutes_played, foot, height, weight, country_of_birth, main_position, template, position_full_name, season) VALUES ?';
               dbConnection.query(insertQuery, [[values]], (insertErr, insertResults) => {
+                if (insertErr) {
+                  console.error('Error inserting data into MySQL table:', insertErr);
+                  reject(insertErr);
+                } else {
+                  resolve(insertResults);
+                }
+              });
+              dbConnection.query(insertQueryMetrics, [[values_Metrics]], (insertErr, insertResults) => {
                 if (insertErr) {
                   console.error('Error inserting data into MySQL table:', insertErr);
                   reject(insertErr);
@@ -427,8 +468,7 @@ app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
                 'accurate_passes_to_penalty_area_percentage,key_passes_per_90, progressives_passes_per_90, ' +
                 'progressives_passes_accuracy, xG_per_shot, long_passes_received_per_90, ' +
                 'long_passes_per_90, long_passes_accuracy, forward_passes_per_90, ' +
-                'accurate_passes, passes_per_90, accurate_forward_passes, defensive_actions_per_90, ' +
-                'ranking_index) VALUES ?';
+                'accurate_passes, passes_per_90, accurate_forward_passes, defensive_actions_per_90) VALUES ?';
             
 
                 dbConnection.query(insertQuery, [[values]], (insertErr, insertResults) => {
@@ -462,139 +502,139 @@ app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
                   });
                 } else {
 // ------------- Players Metrics Calculs
-                let positionWeightPath = './position_weights.json';
-                let positionWeightIndexPath = './position_index_weights.json';
-                // Read existing data from the file
-                let positionWeightExistingData = fs.readFileSync(positionWeightPath, 'utf-8');
-                let positionIndexWeightExistingData = fs.readFileSync(positionWeightIndexPath, 'utf-8');
-                // Parse existing JSON data
-                let position_weights = JSON.parse(positionWeightExistingData);
-                let position_index_weights = JSON.parse(positionIndexWeightExistingData);
-                app.get('/get-csv/MetricsVar', (req, res) => {
-                  res.json({  position_weights,position_index_weights });
-                });
-                app.put('/get-csv/MetricsVar', (req, res) => {
-                  let { positionWeights, positionIndexWeights } = req.body;
-                  console.log(positionIndexWeights);
-                  // Update your position_weights and position_index_weights variables here
-                  if(Object.keys(positionWeights).length !=0){
-                    position_weights = positionWeights;
-                    let updatedData = JSON.stringify(position_weights, null, 2);
-                    fs.writeFileSync(positionWeightPath, updatedData);
-                  }
+                // let positionWeightPath = './position_weights.json';
+                // let positionWeightIndexPath = './position_index_weights.json';
+                // // Read existing data from the file
+                // let positionWeightExistingData = fs.readFileSync(positionWeightPath, 'utf-8');
+                // let positionIndexWeightExistingData = fs.readFileSync(positionWeightIndexPath, 'utf-8');
+                // // Parse existing JSON data
+                // let position_weights = JSON.parse(positionWeightExistingData);
+                // let position_index_weights = JSON.parse(positionIndexWeightExistingData);
+                // app.get('/get-csv/MetricsVar', (req, res) => {
+                //   res.json({  position_weights,position_index_weights });
+                // });
+                // app.put('/get-csv/MetricsVar', (req, res) => {
+                //   let { positionWeights, positionIndexWeights } = req.body;
+                //   console.log(positionIndexWeights);
+                //   // Update your position_weights and position_index_weights variables here
+                //   if(Object.keys(positionWeights).length !=0){
+                //     position_weights = positionWeights;
+                //     let updatedData = JSON.stringify(position_weights, null, 2);
+                //     fs.writeFileSync(positionWeightPath, updatedData);
+                //   }
 
-                  if (Object.keys(positionIndexWeights).length !=0) {
-                    position_index_weights = positionIndexWeights;
-                    let updatedIndexData = JSON.stringify(position_index_weights, null, 2);
-                    fs.writeFileSync(positionWeightIndexPath, updatedIndexData);
-                  }
-                  // console.log(Object.keys(positionIndexWeights).length );
+                //   if (Object.keys(positionIndexWeights).length !=0) {
+                //     position_index_weights = positionIndexWeights;
+                //     let updatedIndexData = JSON.stringify(position_index_weights, null, 2);
+                //     fs.writeFileSync(positionWeightIndexPath, updatedIndexData);
+                //   }
+                //   // console.log(Object.keys(positionIndexWeights).length );
 
-                  res.json({ message: 'MetricsVar updated successfully' });
-                });
-                const playerMetricsApi = 'http://localhost:5038/get-csv/playerMetrics';
-                const playerProfilesApi = 'http://localhost:5038/get-csv/playerprofile';
+                //   res.json({ message: 'MetricsVar updated successfully' });
+                // });
+                // const playerMetricsApi = 'http://localhost:5038/get-csv/playerMetrics';
+                // const playerProfilesApi = 'http://localhost:5038/get-csv/playerprofile';
 
-                // Assuming you define profilesData somewhere in your code
-                let profilesData;
-                let totalSumArray;
-                const options = [];
-                const colors = ["#C70773", "#32CCA0", "#64BB9E", "#582E6E", "#86F749"];
-                const selected_features = [
-                  'xG_per_90', 'shots_per_90', 'ball_touches_in_penalty_area_per_90',
-                  'dribbles_per_90', 'successful_dribbles_percentage', 'defensive_actions_per_90', 'passes_per_90',
-                  'passes_to_penalty_area_per_90', 'progressives_passes_per_90'
-                ];
-                let League_Avg = {};
-                let Pos_Avg={};
-                let recent_performance=[];
-                let weighted;
+                // // Assuming you define profilesData somewhere in your code
+                // let profilesData;
+                // let totalSumArray;
+                // const options = [];
+                // const colors = ["#C70773", "#32CCA0", "#64BB9E", "#582E6E", "#86F749"];
+                // const selected_features = [
+                //   'xG_per_90', 'shots_per_90', 'ball_touches_in_penalty_area_per_90',
+                //   'dribbles_per_90', 'successful_dribbles_percentage', 'defensive_actions_per_90', 'passes_per_90',
+                //   'passes_to_penalty_area_per_90', 'progressives_passes_per_90'
+                // ];
+                // let League_Avg = {};
+                // let Pos_Avg={};
+                // let recent_performance=[];
+                // let weighted;
 
-                  // Min-Max Scaling function
-                  const minMaxScaleArray = (data, newMin = 0, newMax = 100, decimalPlaces = 2) => {
-                    const min = Math.min(...data);
-                    const max = Math.max(...data);
+                //   // Min-Max Scaling function
+                //   const minMaxScaleArray = (data, newMin = 0, newMax = 100, decimalPlaces = 2) => {
+                //     const min = Math.min(...data);
+                //     const max = Math.max(...data);
                     
-                    const scaledData = data.map(value =>
-                      parseFloat(((value - min) / (max - min) * (newMax - newMin) + newMin).toFixed(decimalPlaces))
-                    );
+                //     const scaledData = data.map(value =>
+                //       parseFloat(((value - min) / (max - min) * (newMax - newMin) + newMin).toFixed(decimalPlaces))
+                //     );
                   
-                    return scaledData;
-                  };
-                const applyPositionWeights = (player, position_weights) => {
-                  const position = player['main_position'];
+                //     return scaledData;
+                //   };
+                // const applyPositionWeights = (player, position_weights) => {
+                //   const position = player['main_position'];
 
-                  const applyWeightsRecursive = (data, weights) => {
-                    if (typeof data === 'number') {
-                      return data * weights;
-                    } else if (typeof data === 'object') {
-                      const result = {};
-                      for (const key in data) {
-                        if (weights[key] !== undefined) {
-                          result[key] = applyWeightsRecursive(data[key], weights[key]);
-                        } else {
-                          result[key] = data[key];
-                        }
-                      }
-                      return result;
-                    } else {
-                      return data; // Non-object, non-number values (e.g., strings) are not weighted
-                    }
-                  };
+                //   const applyWeightsRecursive = (data, weights) => {
+                //     if (typeof data === 'number') {
+                //       return data * weights;
+                //     } else if (typeof data === 'object') {
+                //       const result = {};
+                //       for (const key in data) {
+                //         if (weights[key] !== undefined) {
+                //           result[key] = applyWeightsRecursive(data[key], weights[key]);
+                //         } else {
+                //           result[key] = data[key];
+                //         }
+                //       }
+                //       return result;
+                //     } else {
+                //       return data; // Non-object, non-number values (e.g., strings) are not weighted
+                //     }
+                //   };
 
-                  if (position_weights[position]) {
-                    const weightedPlayer = { ...player };
-                    let values = {};
-                    let sumValue = {};
-                    let sumValues = {};
+                //   if (position_weights[position]) {
+                //     const weightedPlayer = { ...player };
+                //     let values = {};
+                //     let sumValue = {};
+                //     let sumValues = {};
 
-                    for (const [key, value] of Object.entries(position_weights[position])) {
-                      if (typeof value === 'object') {
-                        for (const metricGroup in value) {
-                          if (weightedPlayer[metricGroup]) {
-                            const weights = value[metricGroup];
-                            weightedPlayer[metricGroup] = applyWeightsRecursive(weightedPlayer[metricGroup], weights);
+                //     for (const [key, value] of Object.entries(position_weights[position])) {
+                //       if (typeof value === 'object') {
+                //         for (const metricGroup in value) {
+                //           if (weightedPlayer[metricGroup]) {
+                //             const weights = value[metricGroup];
+                //             weightedPlayer[metricGroup] = applyWeightsRecursive(weightedPlayer[metricGroup], weights);
 
-                            if (!values[key]) {
-                              values[key] = {};
-                            }
-                            values[key][metricGroup] = weightedPlayer[metricGroup];
-                            sumValue[key] = Object.values(values[key]).reduce((a, b) => a + b, 0);
-                            sumValue["minutes_played"]=weightedPlayer["90s"]*90;
-                            // console.log(weightedPlayer["myTeam_id"],sumValue);
-                          }
-                        }
-                      }
-                    }
+                //             if (!values[key]) {
+                //               values[key] = {};
+                //             }
+                //             values[key][metricGroup] = weightedPlayer[metricGroup];
+                //             sumValue[key] = Object.values(values[key]).reduce((a, b) => a + b, 0);
+                //             sumValue["minutes_played"]=weightedPlayer["90s"]*90;
+                //             // console.log(weightedPlayer["myTeam_id"],sumValue);
+                //           }
+                //         }
+                //       }
+                //     }
 
-                    for (const [key, value] of Object.entries(position_index_weights[position])) {
-                      for (const [key1, value1] of Object.entries(sumValue)) {
-                        if (key === key1) {
-                          if (!sumValues[key1]) {
-                            sumValues[key1] = 0;
-                          }
-                          sumValues[key1] += value * value1;
-                          //  console.log(weightedPlayer["myTeam_id"],sumValues)
-                        }
-                      }
-                    }
+                //     for (const [key, value] of Object.entries(position_index_weights[position])) {
+                //       for (const [key1, value1] of Object.entries(sumValue)) {
+                //         if (key === key1) {
+                //           if (!sumValues[key1]) {
+                //             sumValues[key1] = 0;
+                //           }
+                //           sumValues[key1] += value * value1;
+                //           //  console.log(weightedPlayer["myTeam_id"],sumValues)
+                //         }
+                //       }
+                //     }
 
-                    // Calculate totalSum based on the sumValues
-                    const totalSum = Object.values(sumValues).reduce((a, b) => a + b, 0);
-                    //  console.log(weightedPlayer["myTeam_id"],totalSum)
-                      if(!totalSumArray){
-                      totalSumArray=[];
-                      weightedPlayer[`${position}_index`]=totalSumArray;
-                    }
-                    totalSumArray.push(totalSum);
-                    // Min-Max scale the standard-scaled totalSumArray
-                    const finalScaledTotalSumArray = minMaxScaleArray(totalSumArray);
-                    // console.log(finalScaledTotalSumArray)
-                    player["indice"]=totalSum;
-                  }
+                //     // Calculate totalSum based on the sumValues
+                //     const totalSum = Object.values(sumValues).reduce((a, b) => a + b, 0);
+                //     //  console.log(weightedPlayer["myTeam_id"],totalSum)
+                //       if(!totalSumArray){
+                //       totalSumArray=[];
+                //       weightedPlayer[`${position}_index`]=totalSumArray;
+                //     }
+                //     totalSumArray.push(totalSum);
+                //     // Min-Max scale the standard-scaled totalSumArray
+                //     const finalScaledTotalSumArray = minMaxScaleArray(totalSumArray);
+                //     // console.log(finalScaledTotalSumArray)
+                //     player["indice"]=totalSum;
+                //   }
 
-                  return player;
-                };
+                //   return player;
+                // };
 
 
                 // app.get('/getMergedPlayerData', async (req, res) => {
