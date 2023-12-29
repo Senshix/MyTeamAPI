@@ -27,17 +27,17 @@ const dbConfig = {
   user: 'root',
   password: '',
   database: 'MyTeam',
+  connectionLimit: 10
 };
 //------------  Connection to Mysql
-const dbConnection = mysql.createConnection(dbConfig);
-dbConnection.connect((err) => {
-  if (err) {
-    console.error('Error connecting to MySQL database:', err);
-    return;
-  }
-  console.log('Connected to MySQL database');
-});
-const pool = mysql.createPool(dbConfig);
+const dbConnection = mysql.createPool(dbConfig);
+// dbConnection.connect((err) => {
+//   if (err) {
+//     console.error('Error connecting to MySQL database:', err);
+//     return;
+//   }
+//   console.log('Connected to MySQL database');
+// });
 const position_mapping = {
   'RCMF': 'CMF', // Right Center Midfield to Center Midfield
   'LCMF': 'CMF', // Left Center Midfield to Center Midfield
@@ -84,184 +84,419 @@ const poste_mapping_dict = {
 }
 
 //--------------------------player Profile POST
+// app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
+//   console.log('Reached /upload-csv/playerProfile endpoint');
+//   console.log('Request file:', req.file);
+//   if (!req.file) {
+//     return res.status(400).json({ error: 'No file uploaded.' });
+//   }
+//   // Start a transaction
+  
+//   dbConnection.beginTransaction((beginTransactionErr) => {
+//     if (beginTransactionErr) {
+//       console.error('Error starting MySQL transaction:', beginTransactionErr);
+//       return res.status(500).json({
+//         error: 'Error starting MySQL transaction.',
+//         errorMessage: beginTransactionErr.sqlMessage,
+//       });
+//     }
+//     csvtojson()
+//       .fromString(req.file.buffer.toString())
+//       .then((jsonArray) => {
+//         const idCheck = jsonArray.map((data) => data.Joueur);
+//         const placeholders = idCheck.map(() => '?').join(', ');
+//         const searchQuery = `SELECT wyscout_name FROM PlayerProfile WHERE wyscout_name IN (${placeholders})`;
+//                 // Execute the search query
+//         dbConnection.query(searchQuery, idCheck, (searchErr, searchResults) => {
+//         if (searchErr) {
+//         console.error('Error searching for wyscout_name in PlayerProfile:', searchErr);
+//         // Handle the error as needed
+//         dbConnection.rollback(() => {
+//           res.status(500).json({
+//             error: 'Error searching for wyscout_name in PlayerProfile.',
+//             errorMessage: searchErr.sqlMessage,
+//           });
+//         });
+//         return;
+//         }
+//         const existingIds =Array.from(new Set(searchResults.map(result => result.Joueur)));
+//         const insertPromises = [];
+//         const updatePromises = [];
+//         let template;
+//         let position_full_name;
+//         jsonArray.forEach((data) => {
+//           const first_name = 'first_name';
+//           const season='23-24';
+//           const joueurValues = data.Joueur.split('.'); // Split the Joueur values by dot
+//           const last_name = joueurValues.length > 1 ? joueurValues[1].trim() : data.Joueur.trim(); // Take the value after the dot
+//           const placeValues = data.Place.split(','); // Split the values by comma
+//           const firstPlace = placeValues.length > 0 ? placeValues[0].trim() : ''; // Take the first value and trim any extra spaces  
+//           if (position_mapping.hasOwnProperty(firstPlace)  ) {
+//             data.Place = position_mapping[firstPlace];
+
+//         }
+//         const _90s = Math.round((parseInt(data['Minutes jouées']) / 90) * 100) / 100; // Round to 2 decimal places
+//         if( position_to_template.hasOwnProperty(data.Place)&& poste_mapping_dict.hasOwnProperty(data.Place)){
+//            template=position_to_template[data.Place];
+//            position_full_name=poste_mapping_dict[data.Place]
+//         }
+//         const values = [
+//           data.Joueur || '',
+//           first_name,
+//           last_name,
+//           data.Équipe || '',
+//           parseFloat(_90s),
+//           parseInt(data.Âge) || 0,
+//           parseInt(data['Minutes jouées']) || 0,
+//           data.Pied || '',
+//           parseInt(data.Taille) || 0,
+//           parseInt(data.Poids) || 0,
+//           data["Pays de naissance"] || '',
+//           data.Place, // Replace NaN with 0
+//           template,
+//           position_full_name,
+//           season
+//       ];
+//       const values_Metrics=[
+//         data.Joueur || '',
+//         data.Équipe || '',
+//         parseFloat(data["Duels défensifs par 90"] || 0),
+//         parseFloat(data[" Duels défensifs gagnés, %	"] || 0),
+//         parseFloat(data[" Duels aériens par 90	"] || 0),
+//         parseFloat(data[" Duels aériens gagnés, %		"] || 0),
+//         parseFloat(data["Tacles glissés PAdj	"] || 0),
+//         parseFloat(data["Interceptions PAdj	"] || 0),
+//         parseFloat(data["Fautes par 90	"] || 0),
+//         parseFloat(data["Cartons jaunes	"] || 0),
+//         parseFloat(data["Cartons rouges	"] || 0),
+//         parseFloat(data["Buts par 90"] || 0),
+//         parseFloat(data[" Buts hors penalty par 90"] || 0),
+//         parseFloat(data["xG par 90	"] || 0),
+//         parseFloat(data["Tirs par 90"] || 0),
+//         parseFloat(data["Tirs à la cible, %	"] || 0),
+//         parseFloat(data["Taux de conversion but/tir	"] || 0),
+//         parseFloat(data["Passes décisives par 90	"] || 0),
+//         parseFloat(data["Centres par 90	"] || 0),
+//         parseFloat(data["Сentres précises, %	"] || 0),
+//         parseFloat(data["Dribbles par 90	"] || 0),
+//         parseFloat(data["Dribbles réussis, %	"] || 0),
+//         parseFloat(data["Duels offensifs par 90"] || 0),
+//         parseFloat(data["Touches de balle dans la surface de réparation sur 90"] || 0),
+//         parseFloat(data["Courses progressives par 90"] || 0),
+//         parseFloat(data["Passes réceptionnées par 90	"] || 0),
+//         parseFloat(data["xA par 90	"] || 0),
+//         parseFloat(data["Passes décisives avec tir par 90"] || 0),
+//         parseFloat(data["Passes vers la surface de réparation par 90"] || 0),
+//         parseFloat(data["Passes vers la surface de réparation précises, %"] || 0),
+//         parseFloat(data["Passes pénétrantes par 90"] || 0),
+//         parseFloat(data["Passes progressives par 90"] || 0),
+//         parseFloat(data["Passes progressives précises, %"] || 0),
+//         parseFloat(data["xG/Tir"] || 0),
+//         parseFloat(data["Longues passes réceptionnées par 90"] || 0),
+//         parseFloat(data["Passes longues par 90"] || 0),
+//         parseFloat(data["Longues passes précises, %"] || 0),
+//         parseFloat(data["Passes avant par 90"] || 0),
+//         parseFloat(data["Passes précises, %"] || 0),
+//         parseFloat(data["Passes par 90"] || 0),
+//         parseFloat(data["Passes en avant précises, %"] || 0),
+//         parseFloat(data["Actions défensives réussies par 90"] || 0),
+//       ]
+
+
+//           if (existingIds.includes(+data.Joueur)) {            
+//             // If myteam_id exists
+//             const updatePromise = new Promise((resolve, reject) => {
+//               const updateQuery = 'UPDATE PlayerProfile SET ' +
+//               'first_name= ?, ' +
+//               'last_name = ?, ' +
+//               '90s = ?, ' +
+//               'age = ?, ' +
+//               'minutes_played = ?, ' +
+//               'foot = ?, ' +
+//               'height = ?, ' +
+//               'weight = ?, ' +
+//               'country_of_birth = ?, ' +
+//               'main_position = ?, ' +
+//               'template = ?, ' +
+//               'position_full_name = ?, ' +
+//               'season = ?, ' +
+//               'WHERE wyscout_name = ?';
+//               dbConnection.query(updateQuery, [...values.slice(1), data.Joueur], (updateErr, updateResults) => {
+//                 if (updateErr) {
+//                   console.error('Error updating data in MySQL table:', updateErr);
+//                   reject(updateErr);
+//                 } else {
+//                   console.log(`Data updated for Joueur :  ${data.Joueur} successfully`);
+//                   resolve(updateResults);
+//                 }
+//               });
+//             });
+//             updatePromises.push(updatePromise);
+//           } else {
+// //            If wyscout_name doesn't exist
+//             const insertPromise = new Promise((resolve, reject) => {
+//               const insertQueryMetrics =
+//               'INSERT INTO playerMetrics (wyscout_name,Team, defensive_duels_per_90, ' +
+//               'defensive_duels_won_percentage, aerial_duels_per_90, aerial_duels_won_percentage, ' +
+//               'sliding_tackles_per_90_padj, interceptions_per_90_padj, fouls_per_90, yellow_cards, ' +
+//               'red_cards, goals_per_90, non_penalty_goals_per_90, xG_per_90, shots_per_90, ' +
+//               'shots_on_target_percentage, shot_conversion_rate, assists_per_90, crosses_per_90, ' +
+//               'accurate_crosses_percentage, dribbles_per_90, successful_dribbles_percentage, ' +
+//               'offensive_duels_per_90, ball_touches_in_penalty_area_per_90, progressive_runs_per_90, ' +
+//               'passes_received_per_90, xA_per_90, assists_with_shots_per_90, passes_to_penalty_area_per_90, ' +
+//               'accurate_passes_to_penalty_area_percentage,key_passes_per_90, progressives_passes_per_90, ' +
+//               'progressives_passes_accuracy, xG_per_shot, long_passes_received_per_90, ' +
+//               'long_passes_per_90, long_passes_accuracy, forward_passes_per_90, ' +
+//               'accurate_passes, passes_per_90, accurate_forward_passes, defensive_actions_per_90) VALUES ?';
+          
+//               const insertQuery = 'INSERT INTO PlayerProfile (wyscout_name, first_name, last_name, Team, `90s`, age, minutes_played, foot, height, weight, country_of_birth, main_position, template, position_full_name, season) VALUES ?';
+//               dbConnection.query(insertQuery, [[values]], (insertErr, insertResults) => {
+//                 if (insertErr) {
+//                   console.error('Error inserting data into MySQL table:', insertErr);
+//                   reject(insertErr);
+//                 } else {
+//                   resolve(insertResults);
+//                 }
+//               });
+//               dbConnection.query(insertQueryMetrics, [[values_Metrics]], (insertErr, insertResults) => {
+//                 if (insertErr) {
+//                   console.error('Error inserting data into MySQL table:', insertErr);
+//                   reject(insertErr);
+//                 } else {
+//                   resolve(insertResults);
+//                 }
+//               });
+//             });
+//             insertPromises.push(insertPromise);
+//           }
+//         });
+//         console.log('Search Query:', dbConnection.format(searchQuery, idCheck));
+//         console.log('existed  IDs:', existingIds);
+//         //Execute all update promises
+//         Promise.all(updatePromises)
+//           .then(() => {
+//             // Execute all insert promises
+//             return Promise.all(insertPromises);
+//           })
+//           .then(() => {
+// //             Commit the transaction
+//              dbConnection.commit((commitErr) => {
+//                if (commitErr) {
+//                  console.error('Error committing MySQL transaction:', commitErr);
+//                  res.status(500).json({
+//                    error: 'Error committing MySQL transaction.',
+//                    errorMessage: commitErr.sqlMessage,
+//                  });
+//                } else {
+//                 // Send success response
+//                  res.json({ success: true });
+//                }
+//              });
+//           })
+//           .catch((error) => {
+//             // Handle errors from promises
+//             console.error('Error in promises:', error);
+//             dbConnection.rollback(() => {
+//               res.status(500).json({ error: 'Error in promises.' });
+//             });
+//           });
+//       });
+//     })
+//     .catch((error) => {
+//       console.error('Error converting CSV to JSON:', error);
+//       dbConnection.rollback(() => {
+//         res.status(500).json({ error: 'Error converting CSV to JSON.' });
+//       });
+//     });
+// });
+// });
+// ----------------------------------------------
 app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
   console.log('Reached /upload-csv/playerProfile endpoint');
   console.log('Request file:', req.file);
+
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded.' });
   }
-  // Start a transaction
-  dbConnection.beginTransaction((beginTransactionErr) => {
-    if (beginTransactionErr) {
-      console.error('Error starting MySQL transaction:', beginTransactionErr);
-      return res.status(500).json({
-        error: 'Error starting MySQL transaction.',
-        errorMessage: beginTransactionErr.sqlMessage,
-      });
-    }
-    csvtojson()
-      .fromString(req.file.buffer.toString())
-      .then((jsonArray) => {
-        const idCheck = jsonArray.map((data) => data.Joueur);
-        const placeholders = idCheck.map(() => '?').join(', ');
-        const searchQuery = `SELECT wyscout_name FROM PlayerProfile WHERE wyscout_name IN (${placeholders})`;
-                // Execute the search query
-        dbConnection.query(searchQuery, idCheck, (searchErr, searchResults) => {
+
+  csvtojson()
+    .fromString(req.file.buffer.toString())
+    .then((jsonArray) => {
+      const idCheck = jsonArray.map((data) => data.Joueur);
+
+      const placeholders = idCheck.map(() => '?').join(', ');
+      const searchQuery = `SELECT wyscout_name FROM PlayerProfile WHERE wyscout_name IN (${placeholders})`;
+
+      // Execute the search query
+      dbConnection.query(searchQuery, idCheck, (searchErr, searchResults) => {
         if (searchErr) {
-        console.error('Error searching for wyscout_name in PlayerProfile:', searchErr);
-        // Handle the error as needed
-        dbConnection.rollback(() => {
-          res.status(500).json({
+          console.error('Error searching for wyscout_name in PlayerProfile:', searchErr);
+          // Handle the error as needed
+          return res.status(500).json({
             error: 'Error searching for wyscout_name in PlayerProfile.',
             errorMessage: searchErr.sqlMessage,
           });
-        });
-        return;
         }
-        const existingIds =Array.from(new Set(searchResults.map(result => result.Joueur)));
+
+        const existingIds = Array.from(new Set(searchResults.map(result => result.wyscout_name)));
         const insertPromises = [];
         const updatePromises = [];
+        const insertPromisesMetrics = [];
+        const updatePromisesMetrics = [];
+       
         let template;
         let position_full_name;
         jsonArray.forEach((data) => {
           const first_name = 'first_name';
           const season='23-24';
-          const joueurValues = data.Joueur.split('.'); // Split the Joueur values by dot
-          const last_name = joueurValues.length > 1 ? joueurValues[1].trim() : data.Joueur.trim(); // Take the value after the dot
-          const placeValues = data.Place.split(','); // Split the values by comma
-          const firstPlace = placeValues.length > 0 ? placeValues[0].trim() : ''; // Take the first value and trim any extra spaces  
-          if (position_mapping.hasOwnProperty(firstPlace)  ) {
-            data.Place = position_mapping[firstPlace];
+        // Split the Joueur values by dot if defined, otherwise use an empty array
+          const joueurValues = data.Joueur ? data.Joueur.split('.') : [''];     
+          // Take the value after the dot if available, otherwise trim data.Joueur or use an empty string
+          const last_name = joueurValues.length > 1 ? joueurValues[1].trim() : (data.Joueur ? data.Joueur.trim() : '');
 
-        }
+          // Split the values by comma
+          const placeValues = data.Place ? data.Place.split(',') : [''];
+          // Take the first value and trim any extra spaces
+          const firstPlace = placeValues.length > 0 ? placeValues[0].trim() : '';
+          // Check if position_mapping has the firstPlace value before accessing it
+          if (position_mapping.hasOwnProperty(firstPlace)) {
+            data.Place = position_mapping[firstPlace];
+          }
+
         const _90s = Math.round((parseInt(data['Minutes jouées']) / 90) * 100) / 100; // Round to 2 decimal places
         if( position_to_template.hasOwnProperty(data.Place)&& poste_mapping_dict.hasOwnProperty(data.Place)){
            template=position_to_template[data.Place];
            position_full_name=poste_mapping_dict[data.Place]
         }
-        const values = [
-          data.Joueur || '',
-          first_name,
-          last_name,
-          data.Équipe || '',
-          parseFloat(_90s),
-          parseInt(data.Âge) || 0,
-          parseInt(data['Minutes jouées']) || 0,
-          data.Pied || '',
-          parseInt(data.Taille) || 0,
-          parseInt(data.Poids) || 0,
-          data["Pays de naissance"] || '',
-          data.Place, // Replace NaN with 0
-          template,
-          position_full_name,
-          season
-      ];
-      const values_Metrics=[
-        data.Joueur || '',
-        data.Équipe || '',
-        parseFloat(data["Duels défensifs par 90"] || 0),
-        parseFloat(data[" Duels défensifs gagnés, %	"] || 0),
-        parseFloat(data[" Duels aériens par 90	"] || 0),
-        parseFloat(data[" Duels aériens gagnés, %		"] || 0),
-        parseFloat(data["Tacles glissés PAdj	"] || 0),
-        parseFloat(data["Interceptions PAdj	"] || 0),
-        parseFloat(data["Fautes par 90	"] || 0),
-        parseFloat(data["Cartons jaunes	"] || 0),
-        parseFloat(data["Cartons rouges	"] || 0),
-        parseFloat(data["Buts par 90"] || 0),
-        parseFloat(data[" Buts hors penalty par 90"] || 0),
-        parseFloat(data["xG par 90	"] || 0),
-        parseFloat(data["Tirs par 90"] || 0),
-        parseFloat(data["Tirs à la cible, %	"] || 0),
-        parseFloat(data["Taux de conversion but/tir	"] || 0),
-        parseFloat(data["Passes décisives par 90	"] || 0),
-        parseFloat(data["Centres par 90	"] || 0),
-        parseFloat(data["Сentres précises, %	"] || 0),
-        parseFloat(data["Dribbles par 90	"] || 0),
-        parseFloat(data["Dribbles réussis, %	"] || 0),
-        parseFloat(data["Duels offensifs par 90"] || 0),
-        parseFloat(data["Touches de balle dans la surface de réparation sur 90"] || 0),
-        parseFloat(data["Courses progressives par 90"] || 0),
-        parseFloat(data["Passes réceptionnées par 90	"] || 0),
-        parseFloat(data["xA par 90	"] || 0),
-        parseFloat(data["Passes décisives avec tir par 90"] || 0),
-        parseFloat(data["Passes vers la surface de réparation par 90"] || 0),
-        parseFloat(data["Passes vers la surface de réparation précises, %"] || 0),
-        parseFloat(data["Passes pénétrantes par 90"] || 0),
-        parseFloat(data["Passes progressives par 90"] || 0),
-        parseFloat(data["Passes progressives précises, %"] || 0),
-        parseFloat(data["xG/Tir"] || 0),
-        parseFloat(data["Longues passes réceptionnées par 90"] || 0),
-        parseFloat(data["Passes longues par 90"] || 0),
-        parseFloat(data["Longues passes précises, %"] || 0),
-        parseFloat(data["Passes avant par 90"] || 0),
-        parseFloat(data["Passes précises, %"] || 0),
-        parseFloat(data["Passes par 90"] || 0),
-        parseFloat(data["Passes en avant précises, %"] || 0),
-        parseFloat(data["Actions défensives réussies par 90"] || 0),
-      ]
 
+          const values = [
+            data.Joueur ,
+            first_name,
+            last_name,
+            data.Équipe ,
+            parseFloat(_90s),
+            parseInt(data.Âge) || 0,
+            parseInt(data['Minutes jouées']) || 0,
+            data.Pied || '',
+            parseInt(data.Taille) || 0,
+            parseInt(data.Poids) || 0,
+            data["Pays de naissance"] || '',
+            data.Place, // Replace NaN with 0
+            template,
+            position_full_name,
+            season
+        ];
+        const values_Metrics=[
+          data.Joueur ,
+          data.Équipe ,
+          parseFloat(data["Duels défensifs par 90"] || 0),
+          parseFloat(data["Duels défensifs gagnés, %"] || 0),
+          parseFloat(data["Duels aériens par 90"] || 0),
+          parseFloat(data["Duels aériens gagnés, %"] || 0),
+          parseFloat(data["Tacles glissés PAdj"] || 0),
+          parseFloat(data["Interceptions PAdj"] || 0),
+          parseFloat(data["Fautes par 90"] || 0),
+          parseFloat(data["Cartons jaunes"] || 0),
+          parseFloat(data["Cartons rouges"] || 0),
+          parseFloat(data["Buts par 90"] || 0),
+          parseFloat(data["Buts hors penalty par 90"] || 0),
+          parseFloat(data["xG par 90"] || 0),
+          parseFloat(data["Tirs par 90"] || 0),
+          parseFloat(data["Tirs à la cible, %"] || 0),
+          parseFloat(data["Taux de conversion but/tir"] || 0),
+          parseFloat(data["Passes décisives par 90"] || 0),
+          parseFloat(data["Centres par 90"] || 0),
+          parseFloat(data["Сentres précises, %"] || 0),
+          parseFloat(data["Dribbles par 90"] || 0),
+          parseFloat(data["Dribbles réussis, %"] || 0),
+          parseFloat(data["Duels offensifs par 90"] || 0),
+          parseFloat(data["Touches de balle dans la surface de réparation sur 90"] || 0),
+          parseFloat(data["Courses progressives par 90"] || 0),
+          parseFloat(data["Passes réceptionnées par 90"] || 0),
+          parseFloat(data["xA par 90"] || 0),
+          parseFloat(data["Passes décisives avec tir par 90"] || 0),
+          parseFloat(data["Passes vers la surface de réparation par 90"] || 0),
+          parseFloat(data["Passes vers la surface de réparation précises, %"] || 0),
+          parseFloat(data["Passes pénétrantes par 90"] || 0),
+          parseFloat(data["Passes progressives par 90"] || 0),
+          parseFloat(data["Passes progressives précises, %"] || 0),
+          parseFloat(data["xG/Tir"] || 0),
+          parseFloat(data["Longues passes réceptionnées par 90"] || 0),
+          parseFloat(data["Passes longues par 90"] || 0),
+          parseFloat(data["Longues passes précises, %"] || 0),
+          parseFloat(data["Passes avant par 90"] || 0),
+          parseFloat(data["Passes précises, %"] || 0),
+          parseFloat(data["Passes par 90"] || 0),
+          parseFloat(data["Passes en avant précises, %"] || 0),
+          parseFloat(data["Actions défensives réussies par 90"] || 0),
+        ]
 
-          if (existingIds.includes(+data.Joueur)) {            
-            // If myteam_id exists
+          if (existingIds.includes(data.Joueur)) {
+            // Update existing record
             const updatePromise = new Promise((resolve, reject) => {
               const updateQuery = 'UPDATE PlayerProfile SET ' +
-              'first_name= ?, ' +
-              'last_name = ?, ' +
-              '90s = ?, ' +
-              'age = ?, ' +
-              'minutes_played = ?, ' +
-              'foot = ?, ' +
-              'height = ?, ' +
-              'weight = ?, ' +
-              'country_of_birth = ?, ' +
-              'main_position = ?, ' +
-              'template = ?, ' +
-              'position_full_name = ?, ' +
-              'season = ?, ' +
-              'WHERE wyscout_name = ?';
+                            'first_name= ?, ' +
+                            'last_name = ?, ' +
+                            '90s = ?, ' +
+                            'age = ?, ' +
+                            'minutes_played = ?, ' +
+                            'foot = ?, ' +
+                            'height = ?, ' +
+                            'weight = ?, ' +
+                            'country_of_birth = ?, ' +
+                            'main_position = ?, ' +
+                            'template = ?, ' +
+                            'position_full_name = ?, ' +
+                            'season = ? ' +
+                            'WHERE wyscout_name = ?';
+
               dbConnection.query(updateQuery, [...values.slice(1), data.Joueur], (updateErr, updateResults) => {
                 if (updateErr) {
                   console.error('Error updating data in MySQL table:', updateErr);
                   reject(updateErr);
                 } else {
-                  console.log(`Data updated for Joueur :  ${data.Joueur} successfully`);
+                  console.log(`Data updated for Joueur: ${data.Joueur} successfully`);
                   resolve(updateResults);
                 }
               });
             });
             updatePromises.push(updatePromise);
           } else {
-//            If wyscout_name doesn't exist
+            // Insert new record
             const insertPromise = new Promise((resolve, reject) => {
-              const insertQueryMetrics =
-              'INSERT INTO playerMetrics (wyscout_name,Team, defensive_duels_per_90, ' +
-              'defensive_duels_won_percentage, aerial_duels_per_90, aerial_duels_won_percentage, ' +
-              'sliding_tackles_per_90_padj, interceptions_per_90_padj, fouls_per_90, yellow_cards, ' +
-              'red_cards, goals_per_90, non_penalty_goals_per_90, xG_per_90, shots_per_90, ' +
-              'shots_on_target_percentage, shot_conversion_rate, assists_per_90, crosses_per_90, ' +
-              'accurate_crosses_percentage, dribbles_per_90, successful_dribbles_percentage, ' +
-              'offensive_duels_per_90, ball_touches_in_penalty_area_per_90, progressive_runs_per_90, ' +
-              'passes_received_per_90, xA_per_90, assists_with_shots_per_90, passes_to_penalty_area_per_90, ' +
-              'accurate_passes_to_penalty_area_percentage,key_passes_per_90, progressives_passes_per_90, ' +
-              'progressives_passes_accuracy, xG_per_shot, long_passes_received_per_90, ' +
-              'long_passes_per_90, long_passes_accuracy, forward_passes_per_90, ' +
-              'accurate_passes, passes_per_90, accurate_forward_passes, defensive_actions_per_90) VALUES ?';
-          
               const insertQuery = 'INSERT INTO PlayerProfile (wyscout_name, first_name, last_name, Team, `90s`, age, minutes_played, foot, height, weight, country_of_birth, main_position, template, position_full_name, season) VALUES ?';
+              const insertQueryMetrics =
+                            'INSERT INTO playerMetrics (wyscout_name,Team, defensive_duels_per_90, ' +
+                            'defensive_duels_won_percentage, aerial_duels_per_90, aerial_duels_won_percentage, ' +
+                            'sliding_tackles_per_90_padj, interceptions_per_90_padj, fouls_per_90, yellow_cards, ' +
+                            'red_cards, goals_per_90, non_penalty_goals_per_90, xG_per_90, shots_per_90, ' +
+                            'shots_on_target_percentage, shot_conversion_rate, assists_per_90, crosses_per_90, ' +
+                            'accurate_crosses_percentage, dribbles_per_90, successful_dribbles_percentage, ' +
+                            'offensive_duels_per_90, ball_touches_in_penalty_area_per_90, progressive_runs_per_90, ' +
+                            'passes_received_per_90, xA_per_90, assists_with_shots_per_90, passes_to_penalty_area_per_90, ' +
+                            'accurate_passes_to_penalty_area_percentage,key_passes_per_90, progressives_passes_per_90, ' +
+                            'progressives_passes_accuracy, xG_per_shot, long_passes_received_per_90, ' +
+                            'long_passes_per_90, long_passes_accuracy, forward_passes_per_90, ' +
+                            'accurate_passes, passes_per_90, accurate_forward_passes, defensive_actions_per_90) VALUES ?';
+
               dbConnection.query(insertQuery, [[values]], (insertErr, insertResults) => {
                 if (insertErr) {
-                  console.error('Error inserting data into MySQL table:', insertErr);
+                  console.error('Error inserting data into PlayerProfile table:', insertErr);
                   reject(insertErr);
+                  return ;
                 } else {
+                  console.log(`Data inserted for Joueur: ${data.Joueur} successfully`);
                   resolve(insertResults);
                 }
               });
+
               dbConnection.query(insertQueryMetrics, [[values_Metrics]], (insertErr, insertResults) => {
                 if (insertErr) {
-                  console.error('Error inserting data into MySQL table:', insertErr);
+                  console.error('Error inserting data into playerMetrics table:', insertErr);
                   reject(insertErr);
+                  return ;
                 } else {
+                  console.log(`Metrics inserted for Joueur: ${data.Joueur} successfully`);
                   resolve(insertResults);
                 }
               });
@@ -269,45 +504,28 @@ app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
             insertPromises.push(insertPromise);
           }
         });
-        console.log('Search Query:', dbConnection.format(searchQuery, idCheck));
-        console.log('existed  IDs:', existingIds);
-        //Execute all update promises
+
+        // Execute all update promises
         Promise.all(updatePromises)
           .then(() => {
             // Execute all insert promises
             return Promise.all(insertPromises);
           })
           .then(() => {
-//             Commit the transaction
-             dbConnection.commit((commitErr) => {
-               if (commitErr) {
-                 console.error('Error committing MySQL transaction:', commitErr);
-                 res.status(500).json({
-                   error: 'Error committing MySQL transaction.',
-                   errorMessage: commitErr.sqlMessage,
-                 });
-               } else {
-                // Send success response
-                 res.json({ success: true });
-               }
-             });
+            // Send success response
+            res.json({ success: true });
           })
           .catch((error) => {
             // Handle errors from promises
             console.error('Error in promises:', error);
-            dbConnection.rollback(() => {
-              res.status(500).json({ error: 'Error in promises.' });
-            });
+            res.status(500).json({ error: 'Error in promises.' });
           });
       });
     })
     .catch((error) => {
       console.error('Error converting CSV to JSON:', error);
-      dbConnection.rollback(() => {
-        res.status(500).json({ error: 'Error converting CSV to JSON.' });
-      });
+      res.status(500).json({ error: 'Error converting CSV to JSON.' });
     });
-});
 });
 //--------------------------player Metrics POST
 app.post('/upload-csv/playerMetrics', upload.single('csvFile'), (req, res) => {
@@ -2239,7 +2457,7 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                 }
                 selected_player["player_radar_option"]=player_radar_option;
                 delete selected_player[`percentiles`];
-
+                console.log(selected_player["position_full_name"],selected_player["indice"])
                 })
                    
                 }
