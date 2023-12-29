@@ -2462,9 +2462,23 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                    
                 }
                 res.json("Succes");
-                  res.app.get('/api/Data', (req, res) => {
-                    res.json(weightedMergedData);
+                
+                  // Assuming 'weightedMergedData' is an object or array containing your data
+                  // Convert the data to JSON
+                  const jsonData = JSON.stringify(weightedMergedData, null, 2); // The third parameter (2) is for pretty formatting
+                
+                  // Write the JSON data to a local file
+                  fs.writeFile('output.json', jsonData, 'utf8', (err) => {
+                    if (err) {
+                      console.error('Error writing JSON file:', err);
+                      res.status(500).send('Internal Server Error');
+                    } else {
+                      console.log('JSON file created successfully');
+                      // Send a response indicating success
+                      res.json({ success: true, message: 'JSON file created successfully' });
+                    }
                   });
+                
                   } catch (error) {
                     console.error(error);
                     res.status(500).json({ error: 'Failed to fetch and merge player data.' });
