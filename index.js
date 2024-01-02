@@ -2346,7 +2346,6 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                           performanceObject["player_color"] = getColor(performanceObject["player_value"], sortedValues);
                           performanceObject["league_color"] = getColor(performanceObject["league_value"], sortedValues);
                           performanceObject["position_color"] = getColor(performanceObject["position_value"], sortedValues);
-                          
                           // console.log(performanceObject.label)
                           for (const [key, value] of Object.entries(map_cls)) {
                             if (performanceObject.label==="dribbles_per_90"){
