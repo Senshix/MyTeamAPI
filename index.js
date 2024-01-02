@@ -43,7 +43,8 @@ const position_mapping = {
   'LCMF': 'CMF', // Left Center Midfield to Center Midfield
   'RDMF': 'DMF', // Right Defensive Midfield to Defensive Midfield
   'LDMF': 'DMF', // Left Defensive Midfield to Defensive Midfield
-  'RCB': 'CB',   // Right Center Back to Center Back
+  'RCB': 'CB',
+  'CB':'CB',   // Right Center Back to Center Back
   'LCB': 'CB',   // Left Center Back to Center Back
   'LAMF': 'LW',  // Left Attacking Midfield to Left Wing
   'RAMF': 'RW',  // Right Attacking Midfield to Right Wing
@@ -341,11 +342,11 @@ app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
         const existingIds = Array.from(new Set(searchResults.map(result => result.wyscout_name)));
         const insertPromises = [];
         const updatePromises = [];
-        const insertPromisesMetrics = [];
-        const updatePromisesMetrics = [];
+        
        
         let template;
         let position_full_name;
+        let xG_Tir;
         jsonArray.forEach((data) => {
           const first_name = 'first_name';
           const season='23-24';
@@ -358,6 +359,7 @@ app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
           const placeValues = data.Place ? data.Place.split(',') : [''];
           // Take the first value and trim any extra spaces
           const firstPlace = placeValues.length > 0 ? placeValues[0].trim() : '';
+           xG_Tir=parseFloat((data.xG / data.Tir).toFixed(2));
           // Check if position_mapping has the firstPlace value before accessing it
           if (position_mapping.hasOwnProperty(firstPlace)) {
             data.Place = position_mapping[firstPlace];
@@ -420,7 +422,7 @@ app.post('/upload-csv/playerProfile', upload.single('csvFile'), (req, res) => {
           parseFloat(data["Passes pénétrantes par 90"] || 0),
           parseFloat(data["Passes progressives par 90"] || 0),
           parseFloat(data["Passes progressives précises, %"] || 0),
-          parseFloat(data["xG/Tir"] || 0),
+          parseFloat(xG_Tir || 0),
           parseFloat(data["Longues passes réceptionnées par 90"] || 0),
           parseFloat(data["Passes longues par 90"] || 0),
           parseFloat(data["Longues passes précises, %"] || 0),
@@ -1350,6 +1352,9 @@ const columns_to_drop = [
   'Penaltys convertis, %', 'Passes dans 3ème tiers précises', 'Passes dans 3ème tiers précises, %',
   'Tirs contre cadrés, %', 'Rythme du match'
 ]
+function isEmpty(obj) {
+  return Object.keys(obj).length === 0 && obj.constructor === Object;
+}
 const Columns_To_Add = ['Buts concédés','Tirs contre', 'Tirs contre cadrés', 'XG_against'];
 const teamIdMapping=[
   {
@@ -1929,7 +1934,11 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                 let profilesData;
                 let totalSumArray;
                 const options = [];
-                const colors = ["#C70773", "#32CCA0", "#64BB9E", "#582E6E", "#86F749"];
+                const colors = [
+                  {"Possession": '#1adea3'},
+                  {"Defensive": '#168dcb'},
+                  {"Offensive": '#f35c5c'}
+                ]
                 const selected_features = [
                   'xG_per_90', 'shots_per_90', 'ball_touches_in_penalty_area_per_90',
                   'dribbles_per_90', 'successful_dribbles_percentage', 'defensive_actions_per_90', 'passes_per_90',
@@ -1943,6 +1952,65 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                 const Possession_selected_features=['passes_per_90','passes_to_penalty_area_per_90','progressives_passes_per_90'];
                 const Defensive_selected_features=['interceptions_per_90_padj','aerial_duels_won_percentage','defensive_actions_per_90'];
                 const Percentiles=['xG_per_90','shots_per_90','xG_per_shot','dribbles_per_90','successful_dribbles_percentage','ball_touches_in_penalty_area_per_90','passes_per_90','passes_to_penalty_area_per_90','progressives_passes_per_90','interceptions_per_90_padj','aerial_duels_won_percentage','defensive_actions_per_90']
+                const map_cls = {
+                  'Duels défensifs':'defensive_duels_per_90',
+                'Duels défensifs gagnés, %':'defensive_duels_won_percentage',
+                'Duels aériens':'aerial_duels_per_90',
+                'Duels aériens gagnés, %':'aerial_duels_won_percentage',
+                'Tacles glissés PAdj':'sliding_tackles_per_90_padj',
+                'Interceptions':'interceptions_per_90_padj',
+                'Fautes':'fouls_per_90',
+                'Cartons jaunes':'yellow_cards',
+                'Cartons rouges':'red_cards',
+                'Buts':'goals_per_90',
+                'Buts hors penalty':'non_penalty_goals_per_90',
+                'xG':'xG_per_90',
+                'Tirs':'shots_per_90',
+                'Tirs à la cible, %':'shots_on_target_percentage',
+                'Taux de conversion but/tir':'goal_conversion_rate',
+                'Passes décisives':'assists_per_90',
+                'Centres':'crosses_per_90',
+                'Сentres précises, %':'accurate_crosses_percentage',
+                'Dribbles':'dribbles_per_90',
+                'Dribbles réussis, %':'successful_dribbles_percentage',
+                'Duels offensifs':'offensive_duels_per_90',
+                'Touches de balle dans la surface  de réparation sur 90':'ball_touches_in_penalty_area_per_90',
+                'Courses progressives':'progressive_runs_per_90',
+                'Passes réceptionnées':'passes_received_per_90',
+                'xA':'xA_per_90',
+                'Passes décisives avec tir':'assists_with_shots_per_90',
+                'Passes vers la surface  de réparation':'passes_to_penalty_area_per_90',
+                'Passes vers la surface  de réparation précises, %':'accurate_passes_to_penalty_area_percentage',
+                'Passes pénétrantes':'key_passes_per_90',
+                'Passes progressives':'progressives_passes_per_90',
+                'Passes progressives précises, %':'progressives_passes_accuracy',
+                'xG/Tir':'xG_per_shot',
+                'Longues passes réceptionnées':'long_passes_received_per_90',
+                'Passes longues':'long_passes_per_90',
+                'Longues passes précises, %':'long_passes_accuracy',
+                'Passes avant':'forward_passes_per_90',
+                'Passes précises, %':'accurate_passes',
+                'Passes':'passes_per_90',
+                'Taux de conversion but/tir':'shot_conversion_rate',  
+                'Passes en avant précises, %':'accurate_forward_passes',
+                'Actions défensives réussies':'defensive_actions_per_90'
+              }
+              const metrics_byPosition = {
+                RW:["goals_per_90","crosses_per_90","accurate_crosses_percentage","dribbles_per_90","successful_dribbles_percentage","accurate_passes", "forward_passes_per_90","key_passes_per_90","assists_per_90","ball_touches_in_penalty_area_per_90","shot_conversion_rate", "shots_per_90"],
+                LW:["goals_per_90","crosses_per_90","accurate_crosses_percentage","dribbles_per_90","successful_dribbles_percentage","accurate_passes", "forward_passes_per_90","key_passes_per_90","assists_per_90","ball_touches_in_penalty_area_per_90","shot_conversion_rate", "shots_per_90"],
+                CF: [
+                  'xG_per_90', 'shots_per_90', 'ball_touches_in_penalty_area_per_90',
+                  'dribbles_per_90', 'successful_dribbles_percentage', 'defensive_actions_per_90', 'passes_per_90',
+                  'passes_to_penalty_area_per_90', 'progressives_passes_per_90'
+                ],
+                AMF:["goals_per_90","dribbles_per_90","successful_dribbles_percentage","accurate_passes", "forward_passes_per_90","key_passes_per_90","assists_per_90","ball_touches_in_penalty_area_per_90","shot_conversion_rate", "shots_per_90"],
+                CMF:["interceptions_per_90_padj","accurate_forward_passes","key_passes_per_90", "long_passes_per_90","forward_passes_per_90","assists_per_90","aerial_duels_won_percentage"],
+                DMF:["sliding_tackles_per_90_padj","interceptions_per_90_padj","accurate_passes","passes_per_90","defensive_duels_per_90","defensive_duels_won_percentage","fouls_per_90","long_passes_per_90"],
+                CB:["aerial_duels_won_percentage","aerial_duels_per_90","fouls_per_90","interceptions_per_90_padj","sliding_tackles_per_90_padj","long_passes_per_90","long_passes_accuracy"],
+                RB:["fouls_per_90","sliding_tackles_per_90_padj","interceptions_per_90_padj","accurate_passes","key_passes_per_90","crosses_per_90","accurate_crosses_percentage","dribbles_per_90","successful_dribbles_percentage","aerial_duels_won_percentage","aerial_duels_per_90"],
+                LB:["fouls_per_90","sliding_tackles_per_90_padj","interceptions_per_90_padj","accurate_passes","key_passes_per_90","crosses_per_90","accurate_crosses_percentage","dribbles_per_90","successful_dribbles_percentage","aerial_duels_won_percentage","aerial_duels_per_90"]        
+              };
+              
                 let League_Avg = {};
                 let Pos_Avg={};
                 let recent_performance=[{}];
@@ -1991,8 +2059,25 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                     return percentiles;
                   }
                   function create_pie_chart_option(selected_player){
-
-                    
+                    let data=[];
+                    let datas=[]
+                    Object.keys(selected_player["percentiles"]).forEach(value=>{
+                      colors.forEach(obj => {
+                           const key = Object.keys(obj)[0];
+                           if(value===key){
+                            selected_player["percentiles"][value].forEach(key1=>{
+                              for (const [key, value] of Object.entries(map_cls)) {
+                                if(key1.name===value){
+                                   key1.name=key
+                                }
+                                                          
+                              }
+                            })
+                            datas={[value]:{'color':obj[key],'data':selected_player["percentiles"][value]}}
+                            data.push(datas)
+                           }
+                        });
+                    })
                     const option = {
                       "legend": {"top": "bottom"},
                       "toolbox": {
@@ -2011,12 +2096,13 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                               "radius": [50, 250],
                               "center": ["50%", "50%"],
                               "roseType": "area",
-                              "itemStyle": {"borderRadius": 8},
-                              "data": selected_player["percentiles"]
+                              "itemStyle": {"borderRadius": 8},                           
+                              data
                           }
                       ]
                   }
-              
+                  
+                 
                   return option
                   }
                 const applyPositionWeights = (player, position_weights) => {
@@ -2111,20 +2197,24 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                       weightedMergedData[position] = mergedData[position].map(player => {
                         Pos_Avg[position] = {}; // Create an object for the position
 
-                        selected_features.forEach(feature => {
-                          Pos_Avg[position][feature] = []; // Create an empty array for the feature
+                        for (const [position1, positionMetrics] of Object.entries(metrics_byPosition)) {
+                          metrics_byPosition[position1].forEach(feature => {
+                          if(player["main_position"]===position1){
+                            Pos_Avg[position][feature] = []; // Create an empty array for the feature
                       
-                          mergedData[position].forEach(player => {
-                            if (player) {
-                              Pos_Avg[position][feature].push(player[feature]);
-                            }
-                          });
-                      
-                          const totalSum = Pos_Avg[position][feature].reduce((a, b) => a + b, 0);
-                          const average = totalSum / Pos_Avg[position][feature].length;
-                          Pos_Avg[position][feature] = parseFloat(average.toFixed(1));
+                            mergedData[position].forEach(player => {
+                              if (player) {
+                                Pos_Avg[position][feature].push(player[feature]);
+                              }
+                            });
+                        
+                            const totalSum = Pos_Avg[position][feature].reduce((a, b) => a + b, 0);
+                            const average = totalSum / Pos_Avg[position][feature].length;
+                            Pos_Avg[position][feature] = parseFloat(average.toFixed(1)); 
+                          }
 
                         });
+                       }
                         return applyPositionWeights(player, position_weights);
                       })
                       ;
@@ -2145,123 +2235,149 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                     player.Classement = index + 1; // Assign rank based on sorted order
                   });
                  
-                    selected_features.forEach(feature => {
-                      weightedMergedData[position].forEach(player => {
-                        if (feature === "progressives_passes_per_90" || feature === "passes_to_penalty_area_per_90" || feature==="successful_dribbles_percentage") {
-                          return;
-                        }
+                  for (const [position1, positionMetrics] of Object.entries(metrics_byPosition)) {
+                    metrics_byPosition[position1].forEach(feature => {
+                        weightedMergedData[position].forEach(player => {
+                         if(player["main_position"]===position1){
+                           if (feature === "progressives_passes_per_90" || feature === "passes_to_penalty_area_per_90" || feature==="successful_dribbles_percentage") {
+                             return;
+                           }
+                          // for (const [key, value] of Object.entries(map_cls)) {
+                          //   console.log(value)
+                          // }
 
-                        const performanceObject = {
-                          id:player["wyscout_name"],
-                          label: feature,
-                          player_value: player[feature],
-                          league_value: League_Avg[feature],
-                          position_value: Pos_Avg[position][feature],
-                          children: []
-                        };
-                        const valuesToSortChildPasses1=[
-                          player["passes_to_penalty_area_per_90"],
-                          League_Avg["passes_to_penalty_area_per_90"],
-                          Pos_Avg[position]["passes_to_penalty_area_per_90"]
-                        ]
-                        const valuesToSortChildPasses2=[
-                          player["progressives_passes_per_90"],
-                          League_Avg["progressives_passes_per_90"],
-                          Pos_Avg[position]["progressives_passes_per_90"]
-                        ]
-                        const valuesToSortChildDribble=[
-                          player["successful_dribbles_percentage"],
-                          League_Avg["successful_dribbles_percentage"],
-                          Pos_Avg[position]["successful_dribbles_percentage"]
-                        ]
-                        const sortedValuesChildDribble = valuesToSortChildDribble.slice().sort((a, b) => b - a);
-                        const sortedValuesChildPasses1 = valuesToSortChildPasses1.slice().sort((a, b) => b - a);
-                        const sortedValuesChildPasses2 = valuesToSortChildPasses2.slice().sort((a, b) => b - a);
-
-
-                        if (feature === "passes_per_90") {
-                          performanceObject["id"]=player["wyscout_name"],
-                          performanceObject["label"] = feature;
-                          performanceObject["player_value"] = player[feature];
-                          performanceObject["league_value"] = League_Avg[feature];
-                          performanceObject["position_value"] = Pos_Avg[position][feature];
-                          performanceObject["children"] = [];
-                          performanceObject.children.push({
-                            label: "passes_to_penalty_area_per_90",
-                            player_value: player["passes_to_penalty_area_per_90"],
-                            league_value: League_Avg["passes_to_penalty_area_per_90"],
-                            position_value: Pos_Avg[position]["passes_to_penalty_area_per_90"],
-                            player_color:getColor(player["passes_to_penalty_area_per_90"], sortedValuesChildPasses1),
-                            league_color:getColor(League_Avg["passes_to_penalty_area_per_90"], sortedValuesChildPasses1),
-                            position_color:getColor(Pos_Avg[position]["passes_to_penalty_area_per_90"], sortedValuesChildPasses1)
-                          }, {
-                            label: "progressives_passes_per_90",
-                            player_value: player["progressives_passes_per_90"],
-                            league_value: League_Avg["progressives_passes_per_90"],
-                            position_value: Pos_Avg[position]["progressives_passes_per_90"],
-                            player_color:getColor(player["progressives_passes_per_90"], sortedValuesChildPasses2),
-                            league_color:getColor(League_Avg["progressives_passes_per_90"], sortedValuesChildPasses2),
-                            position_color:getColor(Pos_Avg[position]["progressives_passes_per_90"], sortedValuesChildPasses2)
-                          });
-                        }
-                        else  if(feature==="dribbles_per_90") {
-
-                          performanceObject["id"]=player["wyscout_name"],
-                          performanceObject["label"] = feature;
-                          performanceObject["player_value"] = player[feature];
-                          performanceObject["league_value"] = League_Avg[feature];
-                          performanceObject["position_value"] = Pos_Avg[position][feature];
-                          performanceObject["children"] = [];
-                          performanceObject.children.push({
-                            label: "successful_dribbles_percentage",
-                            player_value: player["successful_dribbles_percentage"],
-                            league_value: League_Avg["successful_dribbles_percentage"],
-                            position_value: Pos_Avg[position]["successful_dribbles_percentage"],
-                            player_color:getColor(player["successful_dribbles_percentage"], sortedValuesChildDribble),
-                            league_color:getColor(League_Avg["successful_dribbles_percentage"], sortedValuesChildDribble),
-                            position_color:getColor(Pos_Avg[position]["successful_dribbles_percentage"], sortedValuesChildDribble)
-                          });
-                      
-                        }
-                        function getColor(value, sortedValues) {
-                          const index = sortedValues.indexOf(value);
-                          const totalValues = sortedValues.length;
-                        
-                          if (index === 0) {
-                            return '#009900'; // Highest value
-                          } else if (index === totalValues - 1) {
-                            return '#ff3300'; // Lowest value
-                          } else {
-                            return '#FF69B4'; // Middle value
+                          const performanceObject = {
+                            id:player["wyscout_name"],
+                            label: feature,
+                            player_value: player[feature],
+                            league_value: League_Avg[feature],
+                            position_value: Pos_Avg[position][feature],
+                            children: []
+                          };
+                          const valuesToSortChildPasses1=[
+                            player["passes_to_penalty_area_per_90"],
+                            League_Avg["passes_to_penalty_area_per_90"],
+                            Pos_Avg[position]["passes_to_penalty_area_per_90"]
+                          ]
+                          const valuesToSortChildPasses2=[
+                            player["progressives_passes_per_90"],
+                            League_Avg["progressives_passes_per_90"],
+                            Pos_Avg[position]["progressives_passes_per_90"]
+                          ]
+                          const valuesToSortChildDribble=[
+                            player["successful_dribbles_percentage"],
+                            League_Avg["successful_dribbles_percentage"],
+                            Pos_Avg[position]["successful_dribbles_percentage"]
+                          ]
+                          const sortedValuesChildDribble = valuesToSortChildDribble.slice().sort((a, b) => b - a);
+                          const sortedValuesChildPasses1 = valuesToSortChildPasses1.slice().sort((a, b) => b - a);
+                          const sortedValuesChildPasses2 = valuesToSortChildPasses2.slice().sort((a, b) => b - a);
+  
+  
+                          if (feature === "passes_per_90") {
+                            performanceObject["id"]=player["wyscout_name"],
+                            performanceObject["label"] = feature;
+                            performanceObject["player_value"] = player[feature];
+                            performanceObject["league_value"] = League_Avg[feature];
+                            performanceObject["position_value"] = Pos_Avg[position][feature];
+                            performanceObject["children"] = [];
+                            performanceObject.children.push({
+                              label: "passes_to_penalty_area_per_90",
+                              player_value: player["passes_to_penalty_area_per_90"],
+                              league_value: League_Avg["passes_to_penalty_area_per_90"],
+                              position_value: Pos_Avg[position]["passes_to_penalty_area_per_90"],
+                              player_color:getColor(player["passes_to_penalty_area_per_90"], sortedValuesChildPasses1),
+                              league_color:getColor(League_Avg["passes_to_penalty_area_per_90"], sortedValuesChildPasses1),
+                              position_color:getColor(Pos_Avg[position]["passes_to_penalty_area_per_90"], sortedValuesChildPasses1)
+                            }, {
+                              label: "progressives_passes_per_90",
+                              player_value: player["progressives_passes_per_90"],
+                              league_value: League_Avg["progressives_passes_per_90"],
+                              position_value: Pos_Avg[position]["progressives_passes_per_90"],
+                              player_color:getColor(player["progressives_passes_per_90"], sortedValuesChildPasses2),
+                              league_color:getColor(League_Avg["progressives_passes_per_90"], sortedValuesChildPasses2),
+                              position_color:getColor(Pos_Avg[position]["progressives_passes_per_90"], sortedValuesChildPasses2)
+                            });
                           }
-                        }
+                          else  if(feature==="dribbles_per_90") {
+  
+                            performanceObject["id"]=player["wyscout_name"],
+                            performanceObject["label"] = feature;
+                            performanceObject["player_value"] = player[feature];
+                            performanceObject["league_value"] = League_Avg[feature];
+                            performanceObject["position_value"] = Pos_Avg[position][feature];
+                            performanceObject["children"] = [];
+                            performanceObject.children.push({
+                              label: "successful_dribbles_percentage",
+                              player_value: player["successful_dribbles_percentage"],
+                              league_value: League_Avg["successful_dribbles_percentage"],
+                              position_value: Pos_Avg[position]["successful_dribbles_percentage"],
+                              player_color:getColor(player["successful_dribbles_percentage"], sortedValuesChildDribble),
+                              league_color:getColor(League_Avg["successful_dribbles_percentage"], sortedValuesChildDribble),
+                              position_color:getColor(Pos_Avg[position]["successful_dribbles_percentage"], sortedValuesChildDribble)
+                            });
                         
-                        // Assuming you have an array of values to sort
-                        const valuesToSort = [
-                          performanceObject["player_value"],
-                          performanceObject["league_value"],
-                          performanceObject["position_value"],
-                        ];
-                       
+                          }
+                          function getColor(value, sortedValues) {
+                            const index = sortedValues.indexOf(value);
+                            const totalValues = sortedValues.length;
+                          
+                            if (index === 0) {
+                              return '#009900'; // Highest value
+                            } else if (index === totalValues - 1) {
+                              return '#ff3300'; // Lowest value
+                            } else {
+                              return '#FF69B4'; // Middle value
+                            }
+                          }
+                          
+                          // Assuming you have an array of values to sort
+                          const valuesToSort = [
+                            performanceObject["player_value"],
+                            performanceObject["league_value"],
+                            performanceObject["position_value"],
+                          ];
+                         
+                          
+                          // Sort the values in descending order
+                          const sortedValues = valuesToSort.slice().sort((a, b) => b - a);
+                         
+                          // Assign colors based on position
+                          performanceObject["player_color"] = getColor(performanceObject["player_value"], sortedValues);
+                          performanceObject["league_color"] = getColor(performanceObject["league_value"], sortedValues);
+                          performanceObject["position_color"] = getColor(performanceObject["position_value"], sortedValues);
+                          
+                          // console.log(performanceObject.label)
+                          for (const [key, value] of Object.entries(map_cls)) {
+                            if (performanceObject.label==="dribbles_per_90"){
+                              performanceObject.children.forEach(child => {
+                                if (child.label==="successful_dribbles_percentage"){
+                                  child.label="Dribbles réussis, %"
+                                }
+                                
+                              });
+                            }
+                            if (performanceObject.label === "passes_per_90") {
+                              performanceObject.children.forEach(child => {
+                                if (child.label===value){
+                                  child.label=key
+                                }
+                              });
+                            }
+                            if (performanceObject.label===value)
+                            performanceObject.label=key
+                          }
+                          recent_performance.push(performanceObject); 
+                          
+                          // console.log(player["wyscout_name"])
+                          // Push the performance object into the array
+                         }
+                        });
                         
-                        // Sort the values in descending order
-                        const sortedValues = valuesToSort.slice().sort((a, b) => b - a);
-                       
-                        // Assign colors based on position
-                        performanceObject["player_color"] = getColor(performanceObject["player_value"], sortedValues);
-                        performanceObject["league_color"] = getColor(performanceObject["league_value"], sortedValues);
-                        performanceObject["position_color"] = getColor(performanceObject["position_value"], sortedValues);
                         
-
-                        recent_performance.push(performanceObject); 
                         
-                        // console.log(player["wyscout_name"])
-                        // Push the performance object into the array
                       });
-                      
-                      
-                      
-                    });
+                    }
                     weighted = weightedMergedData[position].map(player => {
                       const matchingMetrics = recent_performance
                         .filter(metric => metric["id"] === player["wyscout_name"])
@@ -2342,15 +2458,15 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                       //assign color
                       const assignedColor_Def =  colors[colorIndex_Def-1];
                       resultlist_Ofe.push({
-                        'total_offense': player['total_offense'],
+                        'value': player['total_offense'],
                         'item Style': {'color':assignedColor_Ofe},
                         'symbolSize': player['wyscout_name']=== selected_player['wyscout_name'] ? 23 : 15,
                         'fullname': player['wyscout_name'],
                         'img_src': player['image_path'],
                       })
                       resultlist_Def.push({
-                        'total_defence': player['total_defence'],
-                        'item Style': {'color':assignedColor_Def},
+                        'value': player['total_defence'],
+                        'itemStyle': {'color':assignedColor_Def},
                         'symbolSize': player['wyscout_name']=== selected_player['wyscout_name'] ? 23 : 15,
                         'fullname': player['wyscout_name'],
                         'img_src': player['image_path'],
@@ -2457,28 +2573,46 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                 }
                 selected_player["player_radar_option"]=player_radar_option;
                 delete selected_player[`percentiles`];
-                console.log(selected_player["position_full_name"],selected_player["indice"])
                 })
                    
                 }
-                res.json("Succes");
-                
                   // Assuming 'weightedMergedData' is an object or array containing your data
                   // Convert the data to JSON
-                  const jsonData = JSON.stringify(weightedMergedData, null, 2); // The third parameter (2) is for pretty formatting
+                  if (!isEmpty(weightedMergedData)) {
+                    // Convert the data to JSON
+                    const jsonData = JSON.stringify(weightedMergedData, null, 2); // The third parameter (2) is for pretty formatting
                 
-                  // Write the JSON data to a local file
-                  fs.writeFile('output.json', jsonData, 'utf8', (err) => {
-                    if (err) {
-                      console.error('Error writing JSON file:', err);
-                      res.status(500).send('Internal Server Error');
+                    // Check if the file already exists
+                    if (fs.existsSync('output.json')) {
+                      // Update the existing JSON file
+                      fs.writeFile('output.json', jsonData, 'utf8', (err) => {
+                        if (err) {
+                          console.error('Error updating JSON file:', err);
+                          res.status(500).send('Internal Server Error');
+                        } else {
+                          console.log('JSON file updated successfully');
+                          // Send a response indicating success
+                          res.json({ success: true, message: 'JSON file updated successfully' });
+                        }
+                      });
                     } else {
-                      console.log('JSON file created successfully');
-                      // Send a response indicating success
-                      res.json({ success: true, message: 'JSON file created successfully' });
+                      // Create a new JSON file
+                      fs.writeFile('output.json', jsonData, 'utf8', (err) => {
+                        if (err) {
+                          console.error('Error creating JSON file:', err);
+                          res.status(500).send('Internal Server Error');
+                        } else {
+                          console.log('JSON file created successfully');
+                          // Send a response indicating success
+                          res.json({ success: true, message: 'JSON file created successfully' });
+                        }
+                      });
                     }
-                  });
-                
+                  } else {
+                    // Send a response indicating that the data is empty
+                    res.status(400).json({ success: false, message: 'Data is empty, cannot create or update JSON file' });
+                  }
+                  
                   } catch (error) {
                     console.error(error);
                     res.status(500).json({ error: 'Failed to fetch and merge player data.' });
