@@ -2349,6 +2349,7 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                           // console.log(performanceObject.label)
                           for (const [key, value] of Object.entries(map_cls)) {
                             if (performanceObject.label==="dribbles_per_90"){
+                              performanceObject.label="Dribbles"
                               performanceObject.children.forEach(child => {
                                 if (child.label==="successful_dribbles_percentage"){
                                   child.label="Dribbles réussis, %"
@@ -2356,14 +2357,18 @@ app.get('/get-csv/Matchesprofiles', (req, res) => {
                                 
                               });
                             }
-                            if (performanceObject.label === "passes_per_90") {
+                            else if(performanceObject.label === "passes_per_90") {
+                              performanceObject.label="Passes";
                               performanceObject.children.forEach(child => {
-                                if (child.label===value){
-                                  child.label=key
+                                if (child.label==="progressives_passes_per_90"){
+                                  child.label="Passes progressives";
+                                }
+                                else  if (child.label==="passes_to_penalty_area_per_90"){
+                                  child.label='Passes vers la surface  de réparation';
                                 }
                               });
                             }
-                            if (performanceObject.label===value)
+                            else if(performanceObject.label===value )
                             performanceObject.label=key
                           }
                           recent_performance.push(performanceObject); 
